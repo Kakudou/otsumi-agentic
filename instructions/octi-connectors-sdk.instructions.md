@@ -1,0 +1,1 @@
+<!-- Placeholder: OpenCTI Connectors SDK instructions. To be populated. -->

@@ -1,0 +1,3 @@
+[submodule "skills/promp-master"]
+	path = skills/promp-master
+	url = https://github.com/nidhinjs/prompt-master.git

@@ -1,0 +1,1 @@
+<!-- Placeholder: OpenCTI collector connector instructions. To be populated. -->
