@@ -117,6 +117,7 @@ Root: `.otsumi/<feature-name>/`
   "feature_name": "kebab-case",
   "mode": "assisted | vibecoding",
   "language_id": "<string>",
+  "test_style": "pytest | auto",
   "stages": ["stage-01", "stage-02", "..."],
   "started_at": "ISO-8601",
   "started_by": "/start-pipeline",
@@ -270,7 +271,7 @@ Every stage agent follows this common scaffold. Individual agent files specify o
 
 ### Common flow
 
-1. Read `.otsumi/<feature-name>/pipeline.json` and extract `feature_name`, `mode`, `language_id`, `stages`.
+1. Read `.otsumi/<feature-name>/pipeline.json` and extract all fields. Pass them wholesale to stage agents — do not enumerate or filter fields. Language-specific fields (e.g., `test_style`) are opaque to the orchestrator; adapters extract what they need.
 2. Confirm the owned stage is present in the pipeline's `stages` list.
 3. Confirm all earlier active stages are complete (stage-specific upstream checks).
 4. If `assisted` mode and the stage is Stage-4 or Stage-5: do not call the skill; report that `/continue` handles it.
@@ -287,6 +288,7 @@ Every stage agent follows this common scaffold. Individual agent files specify o
 - Never invoke the next stage directly; return control to Otsumi.
 - Never have the skill read `.otsumi/` directly; pass data explicitly.
 - Inputs arrive pre-validated from `pipeline.json`; agents do not infer language from natural language.
+- Before any task that executes code, tests, linting, formatting, type-checking, or dependency operations, the agent mustensure runtime readiness by invoking the /env-setup skill. The agent must resolve language via explicit --lang or pipeline state, and must not infer selectors from natural language alone. The agent must not claim readiness without verification.
 
 ## Pre-Pipeline Context Protocol
 

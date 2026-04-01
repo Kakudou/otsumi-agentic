@@ -7,11 +7,20 @@ You are receiving a `/start-pipeline` command.
 
 ## Usage
 
-`/start-pipeline --mode <assisted|vibecoding> --lang <language-id> [--stages 4,5] <feature description>`
+`/start-pipeline --mode <assisted|vibecoding> --lang <language-id> [--stages 4,5] [--pytest] <feature description>`
 
 Shorthand:
 - `/start-assisted ...` is equivalent to `/start-pipeline --mode assisted ...`
 - `/start-vibecoding ...` is equivalent to `/start-pipeline --mode vibecoding ...`
+
+### `--pytest` flag
+
+Controls which test style Stage-3 uses. When omitted, the default is auto-detected.
+
+| Flag | `test_style` stored | Stage-3 behaviour |
+|------|--------------------|--------------------|
+| `--pytest` | `"pytest"` | plain pytest · `_given_/_when_/_then_` helpers (no `.feature` files) |
+| *(omitted)* | `"auto"` | Stage-3 auto-detects: pytest-bdd if `.feature` files / pytest-bdd imports exist, otherwise plain pytest |
 
 ## Purpose
 
@@ -34,13 +43,17 @@ Initialize one or more feature pipelines with explicit routing selectors and han
    - Full feature delivery → all eight stages (`stage-01` through `stage-08`).
    - Quick fix (user says "fix" or requests minimal work) → `stage-04` and `stage-05` only.
    - Explicit `--stages` flag → use exactly those stages (e.g., `--stages 4,5`).
-6. Create `.otsumi/<feature-name>/pipeline.json`:
+6. Resolve `test_style`:
+   - `--pytest` provided → `"pytest"`
+   - `--pytest` not provided → `"auto"` (Stage-3 will auto-detect at runtime)
+7. Create `.otsumi/<feature-name>/pipeline.json`:
 
 ```json
 {
   "feature_name": "<feature-name>",
   "mode": "<mode>",
   "language_id": "<language-id>",
+  "test_style": "<pytest | auto>",
   "stages": ["stage-01", "stage-02", "..."],
   "started_at": "<ISO-8601>",
   "started_by": "/start-pipeline",
@@ -54,7 +67,7 @@ Initialize one or more feature pipelines with explicit routing selectors and han
 ```
 
 7. Log:
-   - `/atomic-log <feature-name> pipeline.started "mode=<mode> language=<language-id> next_stage=<first active stage>"`
+   - `/atomic-log <feature-name> pipeline.started "mode=<mode> language=<language-id> test_style=<test_style> next_stage=<first active stage>"`
 8. **Assisted mode:** set `status` → `paused` and report that `/continue` will advance the pipeline to the next stage.
    **Vibecoding mode:** invoke the agent for the first active stage.
 

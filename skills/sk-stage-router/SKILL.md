@@ -19,6 +19,7 @@ One job: dispatch a pipeline stage to the correct adapter without pretending all
 - `support_files` - optional
 - `constraints` - optional (stage-04)
 - `correction_brief` - optional, forwarded from the agent on re-invocation (stage-04)
+- `pipeline_fields` - optional passthrough: any extra fields from `pipeline.json` are forwarded to the adapter unchanged
 
 ## Routing Table
 
@@ -34,7 +35,7 @@ One job: dispatch a pipeline stage to the correct adapter without pretending all
 2. Confirm the stage is in the pipeline's stages list.
 3. Resolve the adapter from `stage + language_id`.
 4. If no adapter exists: halt and report the missing combination explicitly.
-5. Invoke the adapter with the relevant stage artifacts.
+5. Invoke the adapter with the relevant stage artifacts plus all `pipeline_fields` passed through unchanged.
 6. Return the adapter result unchanged to the caller.
 
 ## Hard Rules
