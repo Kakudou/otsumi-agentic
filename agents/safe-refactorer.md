@@ -27,12 +27,10 @@ Improve code quality without changing behavior.
 1. Read `.otsumi/<feature-name>/pipeline.json`.
 2. Confirm Stage-5 is present in the pipeline's `stages` list.
 3. Extract `mode` and `language_id`.
-4. If mode is `assisted`:
-   - do not call the skill
-   - report that `/continue` is responsible for validating and materializing `stage-05-output.json`
+4. If mode is `assisted`: STOP immediately. Do NOT call the skill. Report that `/continue` is responsible for validating and materializing `stage-05-output.json`.
 5. Validate the upstream implementation state:
    - if Stage-4 is active: require `.otsumi/<feature-name>/stage-04-output.json`
-   - if tests exist: require GREEN before refactoring
+   - if tests exist: STOP if they are not GREEN before refactoring
 
 ## Before Calling the Skill
 
@@ -61,7 +59,7 @@ For each atomic change the skill proposes:
 
 After all changes are processed:
 1. Run the command `/run-tests <feature-name>` one final time to confirm the full suite is GREEN.
-2. If not GREEN: halt and report to Otsumi before writing the stage output.
+2. If not GREEN: HALT immediately and report to Otsumi before writing the stage output.
 
 Write `.otsumi/<feature-name>/stage-05-output.json`:
 

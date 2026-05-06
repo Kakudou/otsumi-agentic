@@ -7,26 +7,32 @@ description: Legacy feature recovery. Reads existing source code, identifies the
 
 You are receiving a `/retro-feature` command.
 
-Legacy code has behavior. Behavior was never spec'd. This command bridges that gap.
+Legacy code has behavior that was never spec'd. This command reads source as evidence, surfaces what the code does — not what it was intended to do — and translates that into Gherkin a human can read, challenge, and approve.
 
-It reads source code as evidence. It surfaces what the code does, not what it was intended to do, not what it should do, and not what a developer might assume it does. Then it translates that into Gherkin that a human can read, challenge, and approve.
+The output describes what the code does today, not what it should do. Undefined behavior goes into the gap report, not into a scenario. Entangled concerns are flagged. You decide which behaviors are intentional before anything gets written.
 
-The output is honest. Where behavior is undefined, that gets reported. Where behavior is entangled across concerns, that gets flagged. Where the code does something surprising, that goes into the gap report, not silently into a scenario.
-
-This command is intentionally stack-agnostic. It does not know what language or pipeline context will be used downstream. That is not its job. Its job is to read code and produce faithful, domain-language Gherkin.
+Scope lock: produces `.feature` files and a gap report only. NEVER touches source code, generates tests, or creates pipeline state. Stack-agnostic — no language or pipeline context inference.
 
 ## Usage
 
-- `/retro-feature <path>`, scan a specific file or directory
-- `/retro-feature <path> --tests <tests-path>`, scan source with supplemental test evidence
+- `/retro-feature <path>` — scan a specific file or directory
+- `/retro-feature <path> --tests <tests-path>` — scan source with supplemental test evidence
 
-## Purpose
+## Hard Rules
 
-Legacy code has behavior. That behavior was never spec'd. This command reads the source, identifies what distinct features are implemented, and produces Gherkin that describes what the code actually does today.
-
-The output is not a promise of what the code should do. It is a description of what it does, with explicit gaps called out where behavior is undefined, inconsistent, or missing. You decide which behaviors are intentional before anything gets written.
-
-This command does not touch the source code. It does not generate tests. It does not implement anything. It produces `.feature` files and a gap report, then tells you what pipeline commands to run next.
+- NEVER use implementation vocabulary in any scenario step: no `class`, `function`, `endpoint`, `model`, `schema`, `database`, `API`, `object`, `method`, `service`, `handler`, `controller`, `repository`.
+- NEVER approve a scenario on behalf of User. Every scenario requires explicit User approval.
+- NEVER suppress the gap report. Gaps MUST be surfaced before scenarios are presented.
+- NEVER overwrite an existing `features/<feature-name>.feature`.
+- NEVER create `.otsumi/` pipeline state. This command ends at approved `.feature` files.
+- NEVER proceed past boundary approval without explicit User response on every candidate.
+- NEVER claim the recovered Gherkin is complete. It describes observable behavior only — hidden behaviors, emergent interactions, and timing-dependent paths may not be captured.
+- NEVER touch the source code.
+- NEVER draft a scenario for a gap behavior. Gaps belong in the gap report.
+- NEVER invent behaviors not present in the source. If not implemented, it goes in the gap report.
+- Every scenario MUST carry a `source_ref`. No anonymous scenarios.
+- MUST build the vocabulary map before drafting any scenario.
+- Low-confidence candidates MUST be flagged explicitly. Never silently upgrade confidence.
 
 ---
 
@@ -83,7 +89,7 @@ A feature candidate is a cluster of entry points that collectively deliver one c
 - They operate on the same data or external surface (same table, same external service, same file)
 - Removing one from the cluster would leave the remaining behaviors incomplete or meaningless
 
-The name of the candidate should be derivable in plain business English from what the cluster does, not from what files it lives in.
+The name of the candidate MUST be derivable in plain business English from what the cluster does, not from what files it lives in.
 
 ### Entanglement detection
 
@@ -138,7 +144,7 @@ Each signal that fires produces a new candidate of type `invariant`, added to `f
 - must include a plain-English description of the behavior observable to the user over multiple interactions
 - must cite the specific code location (file and line) of each signal that produced them, the state object, the weighted selection call, the accumulator, or the implicit sequence dependency
 
-Do not invent invariants. Every invariant candidate must be grounded in code evidence cited by file and line. If the signal is present but the downstream effect cannot be determined from static analysis alone, flag it as `confidence: low` with an explicit note about what cannot be determined.
+NEVER invent invariants. Every invariant candidate MUST be grounded in code evidence cited by file and line. If the signal is present but the downstream effect cannot be determined from static analysis alone, flag it as `confidence: low` with an explicit note about what cannot be determined.
 
 ### Supplemental test signal
 
@@ -149,7 +155,7 @@ If `tests_path` is provided, read the test files as a second signal:
 - Tested edge cases are strong evidence of intentional behavior
 - Entry points with zero test coverage are elevated as higher-confidence gap candidates
 
-Do not treat test descriptions as authoritative spec. Tests can be wrong, incomplete, or implementation-level. Weight them as supporting evidence, not ground truth.
+NEVER treat test descriptions as authoritative spec. Tests can be wrong, incomplete, or implementation-level. Weight them as supporting evidence, not ground truth.
 
 ### Output: `feature_candidates`
 
@@ -174,7 +180,7 @@ feature_candidates:
     confidence: high | medium | low
 ```
 
-Return all candidates including low-confidence ones. Do not suppress, flag and let the User decide.
+Return all candidates including low-confidence ones. NEVER suppress — flag and let the User decide.
 
 ---
 
@@ -258,7 +264,7 @@ For cluster candidates, draft per entry point:
 
 1. **Happy path**, the primary successful flow with valid inputs and the expected outcome
 2. **Explicit failure paths**, rejection or error behaviors that are explicitly implemented in the code (not gaps, only handled paths)
-3. **Explicit boundary behaviors**, only when the code explicitly handles them; do not invent handling that is not there
+3. **Explicit boundary behaviors**, only when the code explicitly handles them; NEVER invent handling that is not there
 
 For invariant candidates, draft per signal:
 
@@ -280,10 +286,10 @@ For invariant candidates, draft per signal:
 
 2. **The boundary condition**, what happens at the edges of the invariant's influence: first interaction ever (no prior state), state that conflicts with current input, reset that clears accumulated state
 
-   These are often `low` confidence and should be flagged as such, they require the system to have reached a specific accumulated state before the behavior manifests, which static analysis cannot always fully verify.
+   These are often `low` confidence and MUST be flagged as such; they require the system to have reached a specific accumulated state before the behavior manifests, which static analysis cannot always fully verify.
 
-Do not draft scenarios for:
-- Gap behaviors (those live in the gap report, not in Gherkin)
+NEVER draft scenarios for:
+- Gap behaviors (live in the gap report, not in Gherkin)
 - Internal implementation details (object instantiation, module loading, internal function calls)
 - Behaviors that can only be verified by inspecting internal state
 - Behaviors from unreachable code paths
@@ -297,7 +303,7 @@ Source refs are for the approval conversation. They answer "where did this come 
 
 ### Background
 
-If multiple scenarios for the same candidate share identical setup steps (≥ 2 scenarios, identical preconditions), draft a `Background` block. Same rule as greenfield Gherkin: do not use `Background` for steps that only one scenario needs.
+If multiple scenarios for the same candidate share identical setup steps (≥ 2 scenarios, identical preconditions), draft a `Background` block. Same rule as greenfield Gherkin: NEVER use `Background` for steps that only one scenario needs.
 
 ### Scenario Outlines
 
@@ -308,7 +314,7 @@ If the code handles multiple input variations through the same path, different d
 Rate each scenario:
 - `high`, behavior is fully explicit in source, domain vocabulary is unambiguous, no gaps involved
 - `medium`, behavior required minor inference, vocabulary required judgment
-- `low`, behavior is partially inferred or relies on implicit preconditions; User should scrutinize carefully
+- `low`, behavior is partially inferred or relies on implicit preconditions; User MUST scrutinize carefully
 
 ### Output: `draft_specs`
 
@@ -412,7 +418,7 @@ Actions: acknowledge / address <n> now / defer-all
 - `address <n> now`, User clarifies behavior for gap n; wait, incorporate, then continue
 - `defer-all`, proceed; gaps will reappear naturally during trap analysis when the pipeline runs Stage-2
 
-This step is mandatory and non-skippable. Suppressing the gap report produces false confidence.
+MANDATORY: NEVER skip this step. Suppressing the gap report produces false confidence.
 
 ### 5. Per-feature Gherkin approval and `.feature` file creation
 
@@ -420,7 +426,7 @@ For each approved feature candidate, in order:
 
 **a.** Derive a kebab-case feature name from the approved candidate name.
 
-**b.** Check for an existing `.feature` file. If `features/<feature-name>.feature` already exists: halt for this feature and report. Do not overwrite. User must resolve the conflict explicitly.
+**b.** Check for an existing `.feature` file. If `features/<feature-name>.feature` already exists: halt for this feature and report. NEVER overwrite. User must resolve the conflict explicitly.
 
 **c.** Present draft Gherkin scenarios one at a time:
 
@@ -473,19 +479,3 @@ Ready to pipeline:
 ```
 
 No pipeline state is created by this command. The `.feature` files are the output. The developer chooses the language and starts the pipeline explicitly.
-
-## Hard Rules
-
-- Never use implementation vocabulary in any scenario step: no `class`, `function`, `endpoint`, `model`, `schema`, `database`, `API`, `object`, `method`, `service`, `handler`, `controller`, `repository`.
-- Never approve a scenario on behalf of User. Every scenario requires explicit approval.
-- Never suppress the gap report. Gaps must be surfaced before scenarios are presented.
-- Never overwrite an existing `features/<feature-name>.feature`.
-- Never create `.otsumi/` pipeline state. This command ends at approved `.feature` files.
-- Never proceed past boundary approval without explicit User response on every candidate.
-- Never claim the recovered Gherkin is complete. It describes observable behavior. Hidden behaviors, emergent interactions, and timing-dependent paths may not be captured.
-- Never touch the source code.
-- Never draft a scenario for a gap behavior. Gaps belong in the gap report.
-- Never invent behaviors not present in the source. If it is not implemented, it goes in the gap report.
-- Every scenario must carry a `source_ref`. No anonymous scenarios.
-- Build the vocabulary map before drafting any scenario. Do not translate on the fly.
-- Low-confidence candidates must be flagged explicitly. Do not silently upgrade confidence.

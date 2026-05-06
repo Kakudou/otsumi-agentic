@@ -55,10 +55,10 @@ This is the only place in the pipeline where `test_style` is interpreted. `bdd-o
 6. Return the Stage-3 result with artifact paths.
 
 ### Rules
-- `Then` steps must use real asserts.
-- Do not use `pass`, `assert True`, or `NotImplementedError` placeholders.
-- Prefer Pydantic `BaseModel` for shared context and domain-shaped values.
-- Scaffold `conftest.py` fixture stubs for visible external dependencies.
+- `Then` steps MUST use real asserts.
+- NEVER use `pass`, `assert True`, or `NotImplementedError` placeholders.
+- ALWAYS use Pydantic `BaseModel` for shared context and domain-shaped values.
+- MUST scaffold `conftest.py` fixture stubs for all visible external dependencies.
 
 ---
 
@@ -82,7 +82,7 @@ Use this mode when the project uses plain `pytest` with `_given_*` / `_when_*` /
    - Note factory library in use (`polyfactory`, `factory_boy`, etc.) and `ModelFactory` subclass patterns
    - Note fixture style (`@pytest.fixture`, inline, etc.)
    - Note decorators: `@pytest.mark.order(N)`, `# noqa: S101` on assertions, etc.
-2. **Determine test file placement** — mirror the existing test directory structure. Never put tests in a new location when an equivalent existing directory exists.
+2. **Determine test file placement** — mirror the existing test directory structure. NEVER put tests in a new location when an equivalent existing directory exists.
 3. **Write tests** following exact project conventions:
    - One `_given_<scenario>(...)` setup function per test scenario
    - One `_when_<action>(...)` invocation function per action
@@ -90,16 +90,16 @@ Use this mode when the project uses plain `pytest` with `_given_*` / `_when_*` /
    - `@pytest.mark.order(1)` on all test functions
    - `# noqa: S101` on all `assert` statements
    - Use project's factory library for all data generation (do not use raw `dict` or hardcoded values when factories exist)
-4. **Confirm RED state** — every generated test must FAIL against the current (unmodified) source code for the right reason (wrong value, not missing import). Document the failure reason.
-5. **Never modify existing test files** — only create new ones.
-6. **Never introduce pytest-bdd**, `.feature` files, or any test library not already present in the project.
+4. **Confirm RED state** — every generated test MUST FAIL against the current (unmodified) source code for the right reason (wrong value, not missing import). Document the failure reason.
+5. NEVER modify existing test files — only create new ones.
+6. NEVER introduce pytest-bdd, `.feature` files, or any test library not already present in the project.
 7. Return the Stage-3 result.
 
 ### Rules
-- All assertions must be real (`assert x is None`, `assert x == expected`) — no placeholders.
-- Tests must fail RED against current source for the *correct* reason (wrong behavior, not import error).
-- Match the project's naming convention exactly — do not invent new patterns.
-- `polyfactory` `ModelFactory` subclasses must be defined per-file following the project's factory class style.
+- All assertions MUST be real (`assert x is None`, `assert x == expected`) — no placeholders.
+- Tests MUST fail RED against current source for the *correct* reason (wrong behavior, not import error).
+- MUST match the project's naming convention exactly — NEVER invent new patterns.
+- `polyfactory` `ModelFactory` subclasses MUST be defined per-file following the project's factory class style.
 
 ---
 

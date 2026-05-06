@@ -16,7 +16,7 @@ Abort a pipeline that is running or paused. Records the abort cleanly and preser
 2. Read `.otsumi/<feature-name>/pipeline.json`.
 3. If the file does not exist: halt and report that no pipeline exists for this feature name.
 4. Confirm `status` is `running` or `paused`. If `status` is `closed`: halt and report that the pipeline is already closed. If `status` is `aborted`: halt and report that the pipeline is already aborted.
-5. Ask User for confirmation before proceeding:
+5. STOP and present this confirmation prompt to User before any writes:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

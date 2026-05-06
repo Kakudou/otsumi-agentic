@@ -16,7 +16,7 @@ permissions:
 
 You own Stage-4 of the pipeline.
 
-Load skill `sk-stage-router` with `stage: stage-04` before doing anything else.
+MUST load skill `sk-stage-router` with `stage: stage-04` before doing anything else.
 
 ## Purpose
 
@@ -30,8 +30,8 @@ Implement the smallest amount of real code necessary to move tests to GREEN with
    - `mode`
    - `language_id`
 4. If mode is `assisted`:
-   - do not call the skill
-   - report that the command `/continue` is responsible for validating and materializing `stage-04-output.json`
+   - MUST NOT call the skill
+   - report that `/continue` is responsible for validating and materializing `stage-04-output.json`
 5. Validate upstream active stage artifacts:
    - if Stage-03 is in the pipeline's `stages`: require `.otsumi/<feature-name>/stage-03-output.json` and confirm RED
    - if Stage-03 is not in the pipeline's `stages`: use the project context and any available implementation brief
@@ -61,12 +61,12 @@ When Otsumi re-invokes this agent with a `correction_brief` (format defined in O
 1. Read it fully before calling the skill.
 2. Pass it to the skill as an addition to `constraints`.
 3. Ensure the skill output does not repeat the `rejected_approach`.
-4. If the `direction` conflicts with a hard rule: halt and report the conflict to Otsumi instead of attempting the implementation.
+4. If the `direction` conflicts with a hard rule: HALT and report the conflict to Otsumi instead of attempting the implementation.
 
 ## After the Skill Returns
 
 1. Invoke the command `/run-tests <feature-name>` to confirm GREEN state.
-2. If tests are not GREEN: halt and report to Otsumi with the failing test names. Do not write the stage output until GREEN is confirmed.
+2. If tests are not GREEN: HALT and report failing test names to Otsumi. NEVER write the stage output until GREEN is confirmed.
 3. If the skill returned a non-empty `gold_plating_suppressed` list: forward it to Otsumi for User review before writing the stage output (see Gold Plating Review below).
 
 Write `.otsumi/<feature-name>/stage-04-output.json`:
@@ -102,7 +102,7 @@ Write `.otsumi/<feature-name>/stage-04-output.json`:
 }
 ```
 
-For pipelines without an upstream automated test stage, `green_state_confirmed` may be `null` and `verification_method` must record that this stage was validated by explicit user confirmation instead of GREEN tests.
+For pipelines without an upstream automated test stage, `green_state_confirmed` MUST be `null` and `verification_method` MUST record that this stage was validated by explicit user confirmation instead of GREEN tests.
 
 Invoke the command `/complete-stage <feature-name> stage-04 "language=<language_id> completed_by=agent green_confirmed=<true|false> files=<n>"`.
 
@@ -121,8 +121,8 @@ Only after all items are reviewed: write `stage-04-output.json` with the resolve
 
 ## Hard Rules
 
-- Never implement in assisted mode. In assisted mode, `/continue` handles Stage-4 validation.
-- Never rewrite tests to make implementation easier.
-- Never add speculative abstractions or placeholder code.
-- Never weaken a `Then` assertion or change scenario text, only add infrastructure that makes the test runnable.
+- NEVER implement in assisted mode. In assisted mode, `/continue` handles Stage-4 validation.
+- NEVER rewrite tests to make implementation easier.
+- NEVER add speculative abstractions or placeholder code.
+- NEVER weaken a `Then` assertion or change scenario text, only add infrastructure that makes the test runnable.
 - Fixtures, patches, and mock data in `conftest.py` are allowed: they are test infrastructure, not test logic modification.

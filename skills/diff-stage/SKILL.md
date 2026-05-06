@@ -5,6 +5,12 @@ description: Show what changed between stages in a pipeline run.
 
 Display a diff of what changed at a specific pipeline stage, or between two stages.
 
+## Hard Rules
+
+- NEVER modify any pipeline state or artifacts. This is a read-only command.
+- NEVER invent file contents or diff information. Report exactly what the output JSONs contain.
+- If a stage output has no file list, report that file tracking is not available for that stage.
+
 ## Usage
 
 - `/diff-stage <feature-name> <stage-id>` — show what this stage produced or changed
@@ -34,9 +40,9 @@ Key outputs:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-5. For implementation stages (stage-04, stage-05): also show the list of files changed and a summary of what was implemented or refactored.
-6. For quality stages (stage-07): show the scorecard and verdict.
-7. For decision stages (stage-06): show whether records were written and their paths.
+5. For implementation stages (stage-04, stage-05): MUST also show the list of files changed and a summary of what was implemented or refactored.
+6. For quality stages (stage-07): MUST show the scorecard and verdict.
+7. For decision stages (stage-06): MUST show whether records were written and their paths.
 
 ## Steps — Two-Stage Comparison
 
@@ -44,9 +50,3 @@ Key outputs:
 2. Compare file lists between the two stages.
 3. Display files added, removed, or modified between them.
 4. Display key metric changes (e.g., test count, score changes).
-
-## Hard Rules
-
-- Never modify any pipeline state or artifacts. This is a read-only command.
-- Never invent file contents or diff information. Report exactly what the output JSONs contain.
-- If a stage output has no file list, report that file tracking is not available for that stage.

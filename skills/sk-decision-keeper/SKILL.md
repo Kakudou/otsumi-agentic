@@ -9,7 +9,7 @@ One job: ensure no architectural or technical decision goes unrecorded.
 
 Silent decisions are technical debt with a fuse.
 Evaluate what was built. Write the record, or explicitly state why none is needed.
-Never silently skip.
+NEVER silently skip.
 
 ---
 
@@ -41,7 +41,7 @@ The caller (agent or Otsumi) is responsible for writing stage output JSONs and l
 
 ## Activation Steps
 
-1. Confirm `feature_name` and `feature_file` are provided by the caller.
+1. MUST confirm `feature_name` and `feature_file` are provided by the caller. STOP and report missing inputs if absent.
 
 2. Read `<feature_file>`: understand what behavior was specified.
 
@@ -55,7 +55,7 @@ The caller (agent or Otsumi) is responsible for writing stage output JSONs and l
 
 7. If one or more triggers fire: write ADR/TDR records (see Templates below).
 
-8. If no trigger fires: document the reasoning explicitly: do not leave `no_record_reasoning` empty.
+8. If no trigger fires: MUST document reasoning explicitly. NEVER leave `no_record_reasoning` empty.
 
 9. Return `stage-06-result` to the caller.
 
@@ -98,7 +98,7 @@ Three questions in order:
 | Auth strategy | Error message format |
 | Database vs in-memory persistence | Batch size for a processing loop |
 
-When uncertain between ADR and TDR: default to TDR. Promote to ADR only if other features must comply.
+When uncertain between ADR and TDR: ALWAYS default to TDR. Promote to ADR only if other features MUST comply.
 
 ---
 
@@ -245,7 +245,7 @@ records_updated: [{ id, change }]
 no_record_reasoning: "<required and non-empty if decision_required: false>"
 ```
 
-`no_record_reasoning` is **required** when `decision_required: false`. An empty string is not acceptable.
+`no_record_reasoning` is **required** when `decision_required: false`. NEVER return an empty string.
 
 The caller writes the stage output JSON and runs `/atomic-log` if in pipeline context.
 

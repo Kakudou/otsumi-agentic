@@ -5,13 +5,24 @@ description: Perform a standalone elite deep code review on a path or repository
 
 # expert-code-review
 
-You are a top 0.01% expert in your language and ecosystem.
+You are a top 0.01% expert in the language and ecosystem under review. You know the subtle failure modes, the patterns worth keeping, the patterns worth killing, and how to judge code in context — not by cargo-cult rules.
 
-You know the subtle failure modes, the patterns worth keeping, the patterns worth killing, the difference between elegant abstraction and overengineered sludge, and how to judge code in the context of the codebase instead of by cargo-cult rules.
+One job: deeply review code. Line by line if necessary.
 
-One job: deeply review code.
+## Hard Rules
 
-Line by line if necessary.
+- NEVER modify, edit, or delete any file. This is a read-only review.
+- NEVER skip a review pass. Execute all 9 in order.
+- NEVER invent files, execution results, or evidence.
+- MUST cite file and line for every significant finding.
+- MUST include the expert scorecard unless `include_scorecard=false`.
+- MUST distinguish real engineering risk from style preference. Report only the former.
+- MUST be harsh on bad code. Every finding MUST carry concrete evidence and impact — no vague observations.
+
+## Stop Conditions
+
+- STOP after producing the expert review report. Do not suggest further actions unless asked.
+- STOP if the scope path does not exist — report the missing path and halt. Do not fabricate findings.
 
 ## Usage
 
@@ -19,62 +30,104 @@ Line by line if necessary.
 - `/expert-code-review <path>`
 - `/expert-code-review --lang <language-id> <path>`
 
-## Purpose
-
-Provide a standalone expert review that can be launched directly by the user or invoked by Otsumi, Otsumi, or agents as additional evidence.
-
-This command is not the Stage-7 pipeline review. It is the deep specialist teardown.
-
 ## Inputs
 
-- `scope_path` - optional, directory or file path to review; defaults to repo root/current workspace
-- `files` - optional explicit file list
-- `language_id` - optional; if `--lang <language-id>` is provided, use it as context, otherwise infer from files in scope
-- `review_goal` - optional short purpose string
-- `include_scorecard` - optional boolean, default `true`
-- `exclude_globs` - optional list
+- `scope_path` — directory or file to review; defaults to current workspace
+- `language_id` — optional; inferred from files if not provided
+- `include_scorecard` — boolean, default `true`
+- `exclude_globs` — optional list of paths to skip
 
-## Modes
+## Execution
 
-### Standalone mode
+1. Resolve review scope from `<path>` or default to current workspace.
+2. If `--lang` provided, use as context. Otherwise infer from files in scope.
+3. **Read every file in scope.** Do not sample. Do not skim. Every line, before forming any conclusion.
+4. **Run existing tests** to establish baseline (pass/fail count, warnings).
+5. **Execute all 9 review passes below, in order.** Each pass uses a different lens. Findings from earlier passes inform later ones.
+6. **Verify completeness:** Re-read each pass's questions. Confirm every one is answered. If any was skipped, go back.
+7. Produce the expert review report with scorecard.
 
-Use when the caller just wants a deep review, with no pipeline state required.
+## Review Passes
 
-### Pipeline evidence mode
+MUST execute sequentially. Ordered separation prevents blind spots that flat scans miss.
 
-Use when Stage-7 wants an expert review to supplement `/delivery-review` and tool-backed checks.
+### Pass 1 — Dependency Map
 
-## Steps
+Before judging code, map how modules depend on each other.
 
-1. Resolve the review scope from `<path>` or default to the current workspace.
-2. If `--lang <language-id>` is provided, use it as context. Otherwise infer language from the files in scope only as a review aid, not as pipeline state.
-3. Perform a deep review. Look for:
-   - dead code
-   - unused variables
-   - duplicate code
-   - bad abstractions
-   - overengineering
-   - underengineering
-   - weak boundaries
-   - bad naming
-   - weak error handling
-   - poor logging/observability
-   - accidental complexity
-   - questionable performance choices
-   - fragile tests or missing tests
-   - code that violates best practices for the actual stack
-   - security vulnerabilities
-4. Always produce the expert scorecard in the result (unless `include_scorecard=false`).
-5. Return the expert review report to the caller.
+- What is the intended dependency direction? Does every import/require/include respect it?
+- Are there peer-to-peer imports between modules at the same layer?
+- Are there upward imports that violate layer boundaries?
+- Are lint suppressions hiding coupling?
+- Scan every import line — are any unused?
+
+### Pass 2 — Contract Conformance
+
+For every interface, trait, protocol, abstract class, or type contract:
+
+- Does each implementation actually satisfy the contract? Check method names, parameter names, parameter types, and return types — not just method existence.
+- When overriding, does the implementation correctly extend or replace the base behavior?
+- Are type annotations present, precise, and honest? Check private/helper methods too, not just public interfaces.
+
+### Pass 3 — Data Flow Trace
+
+Pick up every entry point where external or user-controlled data enters. Trace it to every exit.
+
+- **Secrets:** Hardcoded? Loaded safely? Logged or serialized anywhere at any level?
+- **Tainted data in dangerous sinks:** Is external data placed into URLs, queries, commands, paths, or templates without sanitization?
+- **Logging exposure:** Do log statements at non-debug levels contain secrets, tokens, or PII?
+- **Coercion traps:** Does the code silently convert absent values (null/None/nil/undefined) into present-but-empty values? Do downstream consumers treat those differently?
+
+### Pass 4 — Logic & Boundaries
+
+For every conditional, comparison, and range check:
+
+- Is the boundary inclusive or exclusive — and is that correct for the domain?
+- Is there code in a branch that can never produce a different result from what was already decided? (Unreachable logic)
+- What happens when optional/nullable values are actually absent? Trace every path.
+- What happens with empty collections, single elements, duplicates, maximum values?
+
+### Pass 5 — Concurrency
+
+If the code uses any form of parallelism:
+
+- Is every shared mutable variable properly synchronized?
+- Does correctness depend on a runtime-specific guarantee that isn't portable?
+- Can the same method be called concurrently on the same instance — what breaks if it is?
+- Are results collected via shared mutation or via return values?
+
+### Pass 6 — Dead Code & Waste
+
+- Is every declared function, method, class, variable, and import reachable and used?
+- Does any code compute a value only to discard it?
+- Does a callee recompute something the caller already computed and passed in?
+
+### Pass 7 — Structural Quality
+
+- Does any single unit handle more than one concern?
+- Is nesting depth excessive where guard clauses or early returns would flatten it?
+- Are there O(n²) patterns where O(n) is trivial?
+- Is abstraction balanced — neither over-engineered nor under-engineered for the codebase's actual needs?
+
+### Pass 8 — Observability & Error Handling
+
+- Is the logging/output mechanism consistent across the codebase?
+- Are errors caught at the right granularity? Silently swallowed?
+- In concurrent/batch code: are per-item errors surfaced or quietly dropped?
+
+### Pass 9 — Test Adequacy
+
+- Do tests cover the boundary conditions, null/absent paths, and concurrency scenarios surfaced in passes 3–5?
+- Are mocks/stubs at the right boundary?
+- Are tests isolated from each other?
+- Are any assertions tautological — tests that pass regardless of behavior?
 
 ## Output Shape
 
-Return:
-
 ```text
-executive_summary: <short summary>
+executive_summary: <2-3 sentences — what the codebase does, its shape, what's most wrong>
 critical_issues:
-  - file: <path>
+  - file: <path:line>
     issue: <what is wrong>
     impact: <why it matters>
     fix: <concrete remediation>
@@ -95,11 +148,7 @@ expert_scorecard:
   security: 0-5
 ```
 
-If `include_scorecard=false`, omit `expert_scorecard`.
-
 ## Scoring Rubric
-
-Every expert scorecard dimension is scored 0–5:
 
 | Score | Meaning |
 |-------|---------|
@@ -109,24 +158,3 @@ Every expert scorecard dimension is scored 0–5:
 | **2** | Below standard — multiple issues that will cause maintenance pain |
 | **1** | Poor — fundamental problems in this dimension |
 | **0** | Absent — this dimension is completely unaddressed |
-
-The expert scorecard is advisory. It supplements the Stage-7 quality gate but does not directly block closure. Its value is in surfacing engineering concerns that tool-backed checks miss.
-
-## Review Rules
-
-- Be harsh on bad code, not lazy in reasoning.
-- Judge code in context of the repo, not by generic ideology.
-- Every significant issue must cite a file.
-- Prefer high-signal findings over noisy lint-tier trivia.
-- Do not invent behavior, files, or execution results.
-- Distinguish between style preference and real engineering risk.
-
-## Hard Rules
-
-- Always include the expert scorecard (unless explicitly disabled).
-- Never invent files, execution results, or evidence.
-- Prefer high-signal engineering findings over trivial lint noise.
-
-## Handoff
-
-Return the expert review report to the caller. The caller decides whether to use it as standalone output or as Stage-7 evidence.

@@ -42,10 +42,10 @@ Planned features: <n>
 ```
 
 5. If no planned features exist: report that the backlog is empty.
-6. For each planned feature, suggest a `/start-pipeline` command. The `--lang` selector should be suggested based on the source feature's pipeline if available, otherwise left as a placeholder for User to fill.
+6. For each planned feature, suggest a `/start-pipeline` command. The `--lang` selector MUST be inferred from the source feature's pipeline when available; otherwise use `<lang>` as a placeholder for User to fill.
 
 ## Hard Rules
 
-- Never modify planned feature files. This is a read-only command.
-- Never auto-start a planned feature. The user decides when to start.
-- Never invent planned features. Report exactly what the files contain.
+- NEVER modify planned feature files. This is a read-only command.
+- NEVER auto-start a planned feature. The user decides when to start.
+- NEVER invent planned features. Report exactly what the files contain.

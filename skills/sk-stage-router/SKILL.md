@@ -5,7 +5,15 @@ description: Generic routing facade for language-bound pipeline stages. Dispatch
 
 # stage-router
 
-One job: dispatch a pipeline stage to the correct adapter without pretending all stacks behave the same.
+Dispatch a pipeline stage to the correct language adapter. NEVER execute stage logic directly.
+
+## Hard Rules
+
+- NEVER execute stage logic directly in this facade.
+- NEVER silently fall back to another adapter.
+- NEVER route to an adapter for a different language.
+- NEVER bypass stage gating.
+- NEVER proceed if `stage`, `feature_name`, or `language_id` are missing — halt immediately and report what is absent.
 
 ## Inputs
 
@@ -31,16 +39,9 @@ One job: dispatch a pipeline stage to the correct adapter without pretending all
 
 ## Activation Steps
 
-1. Confirm `stage`, `feature_name`, `language_id` are present.
-2. Confirm the stage is in the pipeline's stages list.
+1. VERIFY `stage`, `feature_name`, `language_id` are present. Halt with explicit error if any are missing.
+2. VERIFY the stage is in the pipeline's stages list. Halt if not found.
 3. Resolve the adapter from `stage + language_id`.
-4. If no adapter exists: halt and report the missing combination explicitly.
+4. If no adapter exists: halt and report the missing combination explicitly. NEVER guess or substitute.
 5. Invoke the adapter with the relevant stage artifacts plus all `pipeline_fields` passed through unchanged.
 6. Return the adapter result unchanged to the caller.
-
-## Hard Rules
-
-- Never execute stage logic directly in this facade.
-- Never silently fall back to another adapter.
-- Never route to an adapter for a different language.
-- Never bypass stage gating.

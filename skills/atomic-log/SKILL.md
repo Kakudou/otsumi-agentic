@@ -6,7 +6,7 @@ description: Append an event entry to the atomic log of a feature pipeline. Ligh
 Append an entry to `.otsumi/$1/atomic-log.json` by using the commands '/atomic-log' and passing the feature name, event type, and summary.
 
 `$3` is a **required** meaningful summary string built by the caller from the stage output data.
-It must carry signal, not a timestamp, not a label, not empty.
+It MUST carry signal — not a timestamp, not a label, not empty.
 Example: `"scenarios=3 approved=3 rejected=0 file=features/user-login.feature"`
 
 ---

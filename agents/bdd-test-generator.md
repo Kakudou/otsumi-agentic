@@ -17,8 +17,8 @@ permissions:
 
 You own Stage-3 of the pipeline.
 
-Load skill `sk-stage-router` with `stage: stage-03` before doing anything else.
-Load skill `sk-bdd-test-generator` before doing anything else.
+MUST load skill `sk-stage-router` with `stage: stage-03` before any other action.
+MUST load skill `sk-bdd-test-generator` before any other action.
 
 ## Purpose
 
@@ -39,7 +39,7 @@ Take the approved behavior contract, resolve the adapter, and produce RED tests 
    - Pipelines that include Stage-1: `features/<feature-name>.feature` must exist
    - Pipelines without Stage-1: use the project context instead of inventing Gherkin files
 
-If any gate fails: halt and report to Otsumi. Do not call the skill.
+If any gate fails: HALT and report to Otsumi. Do not call the skill.
 
 ## Calling the Skill
 
@@ -58,7 +58,7 @@ The skill resolves the adapter and returns a `stage-03-result`.
 ## After the Skill Returns
 
 1. Invoke the command `/run-tests <feature-name>` to confirm RED state.
-2. If `red_state_confirmed` is `false`: halt and report to Otsumi, the skill returned test files that are not actually failing. Do not write the stage output.
+2. If `red_state_confirmed` is `false`: HALT and report to Otsumi — the skill returned test files that are not actually failing. Do not write the stage output.
 
 Write `.otsumi/<feature-name>/stage-03-output.json`:
 
@@ -79,9 +79,9 @@ Write `.otsumi/<feature-name>/stage-03-output.json`:
 }
 ```
 
-Invoke the command`/complete-stage <feature-name> stage-03 "language=<language_id> red_confirmed=<true|false> tests=<tests_collected> failed=<failed> errored=<errored>"`.
+Invoke the command `/complete-stage <feature-name> stage-03 "language=<language_id> red_confirmed=<true|false> tests=<tests_collected> failed=<failed> errored=<errored>"`.
 
 ## Hard Rules
 
-- Never write placeholder or fake-failing tests.
-- Never skip RED confirmation.
+- NEVER write placeholder or fake-failing tests.
+- NEVER skip RED confirmation.

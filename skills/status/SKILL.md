@@ -3,7 +3,12 @@ name: status
 description: Display the current state of a feature pipeline or list all pipelines.
 ---
 
-Show the current pipeline status for a feature, or list all active pipelines.
+Display the current pipeline status for a feature, or list all active pipelines.
+
+## Hard Rules
+
+- NEVER modify pipeline state. This is a read-only command.
+- NEVER invent status information. Report exactly what the files contain.
 
 ## Usage
 
@@ -14,7 +19,7 @@ Show the current pipeline status for a feature, or list all active pipelines.
 
 1. Validate `<feature-name>`.
 2. Read `.otsumi/<feature-name>/pipeline.json`.
-3. If the file does not exist: report that no pipeline exists for this feature name.
+3. If the file does not exist: report that no pipeline exists for this feature name. Stop.
 4. Display:
 
 ```
@@ -62,8 +67,3 @@ Stages Remaining:   <remaining stages from pipeline>
 ```
 
 4. Also list any `*-planned.json` files as planned features at the bottom.
-
-## Hard Rules
-
-- Never modify pipeline state. This is a read-only command.
-- Never invent status information. Report exactly what the files contain.

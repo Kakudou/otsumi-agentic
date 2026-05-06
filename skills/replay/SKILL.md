@@ -5,26 +5,31 @@ description: Re-run a closed or aborted pipeline from a specific stage.
 
 Replay a pipeline from a specific stage, reusing existing artifacts for all prior stages.
 
+## Hard Rules
+
+- NEVER replay a running or paused pipeline — use `/continue` instead.
+- NEVER delete prior stage output files. Only overwrite stages being re-run.
+- NEVER skip upstream validation. Every stage before the replay point MUST have its output JSON.
+- The pipeline MUST resume normal flow after the replay stage completes — subsequent stages run in order per the pipeline's `stages` list.
+
 ## Usage
 
 `/replay <feature-name> --from <stage-id>`
 
-## Purpose
+## Common Use Cases
 
-When you want to re-run part of a pipeline without starting from scratch. Common cases:
-- re-run quality scoring after manual fixes
-- re-run implementation after changing the spec
-- re-generate documentation after code changes
+- Re-run quality scoring after manual fixes
+- Re-run implementation after changing the spec
+- Re-generate documentation after code changes
 
 ## Steps
 
 1. Validate `<feature-name>` and `--from <stage-id>`.
-2. Read `.otsumi/<feature-name>/pipeline.json`.
-3. If the file does not exist: halt and report.
-4. Confirm `status` is `closed` or `aborted`. If `status` is `running` or `paused`: halt and report that the pipeline is still active — use `/continue` instead.
-5. Confirm that `<stage-id>` is present in the pipeline's `stages` list. If the stage is not in the list: halt and report that the stage is not part of this pipeline.
-6. Confirm that all stages prior to `<stage-id>` (per the pipeline's `stages` list ordering) have output JSONs in `.otsumi/<feature-name>/`. If any required upstream stage is missing: halt and report which stage output is missing.
-7. Ask User for confirmation:
+2. Read `.otsumi/<feature-name>/pipeline.json`. If missing: halt and report.
+3. Confirm `status` is `closed` or `aborted`. If `running` or `paused`: halt — use `/continue` instead.
+4. Confirm `<stage-id>` is present in the pipeline's `stages` list. If not: halt and report.
+5. Confirm all stages prior to `<stage-id>` have output JSONs in `.otsumi/<feature-name>/`. If any are missing: halt and report which.
+6. Present confirmation to User:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -42,7 +47,7 @@ Existing output files for re-run stages will be overwritten.
 Actions: confirm / cancel
 ```
 
-8. On `confirm`:
+7. On `confirm`:
    - Update `.otsumi/<feature-name>/pipeline.json`:
      - `status` → `running`
      - `current_stage` → `null`
@@ -52,11 +57,4 @@ Actions: confirm / cancel
    - Log via `/atomic-log <feature-name> pipeline.replayed "from=<stage-id> previous_status=<status>"`.
    - Invoke the agent for `<stage-id>`, or pause if mode is `assisted`.
 
-9. On `cancel`: do nothing.
-
-## Hard Rules
-
-- Never replay a running or paused pipeline. Use `/continue` for those.
-- Never delete prior stage output files. Only overwrite the stages being re-run.
-- Never skip upstream validation. Every stage before the replay point must have its output.
-- The pipeline resumes normal flow after the replay stage completes — subsequent stages run in order per the pipeline's `stages` list.
+8. On `cancel`: do nothing.

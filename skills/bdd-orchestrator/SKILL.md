@@ -19,7 +19,7 @@ Move the work forward without hardcoding a language, stack, or process.
 
 ## Core Rules
 
-1. Never infer language from natural language alone.
+1. NEVER infer language from natural language alone.
 2. Every pipeline MUST persist `language_id` and `stages`.
 3. Route Stage-3, Stage-4, Stage-5, and Stage-7 through the language's adapter skills.
 4. Route stage activation and pause behavior through the `stages` list in `pipeline.json`.
@@ -30,9 +30,9 @@ Move the work forward without hardcoding a language, stack, or process.
    - `/quality-check`
    - `/delivery-review`
    - `/expert-code-review`
-7. Never start a stage before the previous active stage output exists.
-8. Never implement before RED tests exist when the pipeline includes Stage-3.
-9. Never refactor before tests are GREEN when the pipeline includes test-driven stages.
+7. NEVER start a stage before the previous active stage output exists.
+8. NEVER implement before RED tests exist when the pipeline includes Stage-3.
+9. NEVER refactor before tests are GREEN when the pipeline includes test-driven stages.
 
 ## Stage Subagents
 
@@ -162,7 +162,7 @@ Steps:
 3. Log via the command `/atomic-log <source-feature-name> feature.planned "escalated=<kebab-name> origin=gold_plating_suppressed"`.
 4. After the current pipeline closes, report all planned features to User as a prioritised list with their descriptions and suggested start commands.
 
-A planned feature is not a pipeline. It is a record of intent. The user starts it explicitly with `/start-pipeline` when ready. Do not auto-start it.
+A planned feature is not a pipeline. It is a record of intent. The user starts it explicitly with `/start-pipeline` when ready. NEVER auto-start it.
 
 ## Stage-4 Correction Protocol (canonical definition)
 
@@ -232,7 +232,7 @@ You (Otsumi) are the only agent that talks to User. Subagents do not ask User qu
 
 When a subagent reaches a point that requires User input (approval, review, acknowledgment, decision), the subagent returns its pending item and current context to you. Then:
 
-1. Present the full content of the pending item, never just a summary or a forwarded question stripped of context.
+1. Present the full content of the pending item, NEVER just a summary or a forwarded question stripped of context.
 2. Include a clear header showing: which stage, what is being reviewed, and which feature.
 3. List the available actions explicitly.
 4. Wait for an explicit User response.
@@ -255,7 +255,7 @@ Actions: <available actions>
 
 This applies universally: scenario approvals, trap reviews, final spec confirmation, decision record previews, remediation summaries, and any other point where User input is required.
 
-**Hard rule:** Never surface a question to User from inside a subagent thread. Always bring the content here first.
+**Hard rule:** NEVER surface a question to User from inside a subagent thread. Always bring the content here first.
 
 ## Pre-Handoff Check
 
@@ -284,11 +284,11 @@ Every stage agent follows this common scaffold. Individual agent files specify o
 
 ### Universal hard rules for all stage agents
 
-- Never run a stage not present in the pipeline's `stages` list.
-- Never invoke the next stage directly; return control to Otsumi.
-- Never have the skill read `.otsumi/` directly; pass data explicitly.
-- Inputs arrive pre-validated from `pipeline.json`; agents do not infer language from natural language.
-- Before any task that executes code, tests, linting, formatting, type-checking, or dependency operations, the agent mustensure runtime readiness by invoking the /env-setup skill. The agent must resolve language via explicit --lang or pipeline state, and must not infer selectors from natural language alone. The agent must not claim readiness without verification.
+- NEVER run a stage not present in the pipeline's `stages` list.
+- NEVER invoke the next stage directly; return control to Otsumi.
+- NEVER have the skill read `.otsumi/` directly; pass data explicitly.
+- Inputs arrive pre-validated from `pipeline.json`; agents MUST NOT infer language from natural language.
+- Before any task that executes code, tests, linting, formatting, type-checking, or dependency operations, the agent MUST ensure runtime readiness by invoking the /env-setup skill. The agent must resolve language via explicit --lang or pipeline state, and must not infer selectors from natural language alone. The agent must not claim readiness without verification.
 
 ## Pre-Pipeline Context Protocol
 

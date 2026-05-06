@@ -12,6 +12,18 @@ The feature is not defined until both are done and User has signed off on both.
 
 ---
 
+## Hard Rules
+
+- NEVER treat silence as approval. ALWAYS hold for explicit `approve` / `reject` / `edit` on every scenario and every trap.
+- NEVER mark a trap category N/A without explicit written reasoning.
+- NEVER use implementation terms (`class`, `function`, `API`, `database`, `endpoint`, `model`, `schema`, `service`, `object`, `method`) anywhere in the spec.
+- MUST add a scenario to `.feature` for every approved `critical` or `major` trap.
+- MUST present every scenario and trap individually in the prescribed order; NEVER batch approvals.
+- MUST log rejected scenarios and traps with `approved: false` and a `rejection_reason`; NEVER silently drop them.
+- NEVER write the `.feature` file before all scenarios receive explicit approval and final confirmation.
+
+---
+
 ## Inputs
 
 Provided by whoever calls this skill (agent or direct invocation):
@@ -131,8 +143,8 @@ Feature: User registration
 - **One `Feature` per file.** The feature title is human-readable, derived from the description, not kebab-case.
 - **`Background` is optional.** Use it only when ≥ 2 scenarios share identical setup steps. If only one scenario needs it, inline the steps.
 - **`As a / I want / So that`** is strongly recommended. It anchors the spec to a real actor and a real reason. Omit only when the context is self-evident from the feature title.
-- **`But`** is syntactically identical to `And`. Use it when the step negates or contrasts with the previous expectation, it signals intent to the reader.
-- **Domain language only.** No implementation terms (`API`, `database`, `endpoint`, `model`, `schema`, `service`, `class`, `function`, `object`, `method`). Write steps a non-technical stakeholder can read and challenge.
+- **`But`** is syntactically identical to `And`. Use it when the step negates or contrasts with the previous expectation — it signals intent to the reader.
+- **Domain language only.** NEVER use implementation terms (`API`, `database`, `endpoint`, `model`, `schema`, `service`, `class`, `function`, `object`, `method`). Every step MUST be readable and challengeable by a non-technical stakeholder.
 
 ---
 
@@ -140,29 +152,29 @@ Feature: User registration
 
 ### Rules
 
-- Domain vocabulary only: zero implementation terms like `class`, `function`, `API`, `database`, `endpoint`, `model`, `schema`, `service`, `object`, `method`
-- Minimum 1 happy path scenario
-- Use `Scenario Outline` + `Examples` for multiple data variations
-- Steps must be written in plain business language, readable by a non-technical stakeholder
-- Every scenario must be approved individually before the `.feature` file is written
-- Silence is not consent, hold for explicit response on each scenario
+- Domain vocabulary only: NEVER use implementation terms (`class`, `function`, `API`, `database`, `endpoint`, `model`, `schema`, `service`, `object`, `method`).
+- MUST include minimum 1 happy path scenario.
+- MUST use `Scenario Outline` + `Examples` for multiple data variations.
+- Steps MUST be written in plain business language, readable and challengeable by a non-technical stakeholder.
+- Every scenario MUST be approved individually before the `.feature` file is written.
+- NEVER treat silence as approval; ALWAYS hold for explicit response on each scenario.
 
 ### Activation Steps
 
-1. Confirm `feature_name` and `feature_description` are provided by the caller.
+1. Confirm `feature_name` and `feature_description` are provided; STOP and report error if either is missing.
 
-2. Derive the feature title from the description, human-readable, not kebab-case.
+2. Derive the feature title from the description — human-readable, not kebab-case.
 
-3. Draft all scenarios internally. Do not write the `.feature` file yet.
+3. Draft all scenarios internally. NEVER write the `.feature` file yet.
 
 4. Present each scenario to User one at a time:
    - Show: scenario name, Given/When/Then steps
-   - Wait for: `approve` / `reject` / `edit` / `split` / `merge`
+   - MUST wait for: `approve` / `reject` / `edit` / `split` / `merge`
    - Incorporate feedback before moving to the next scenario
-   - Rejected scenarios are logged as `approved: false` with a `rejection_reason`, not silently dropped
+   - Rejected scenarios MUST be logged as `approved: false` with a `rejection_reason`; NEVER silently drop them.
 
 5. After all scenarios are approved, present the full spec for final confirmation.
-   Wait for explicit approval before writing.
+   MUST wait for explicit approval before writing.
 
 6. Write `features/<feature-name>.feature`.
 
@@ -182,12 +194,13 @@ The caller writes the stage output JSON and runs the commands `/atomic-log` if i
 
 ### Rules
 
-- Minimum 2 approved traps. 3 preferred.
-- Never mark a category N/A without explicit written reasoning
-- Every `critical` or `major` trap that is approved → scenario added to `.feature`
-- Present the full trap summary first, then each trap individually in severity order: critical → major → minor
-- Wait for explicit approval on each trap before writing anything
-- Rejected traps are logged with `approved: false` and a `rejection_reason`, not silently dropped
+- MUST interrogate all 7 trap categories; NEVER skip any.
+- MUST produce minimum 2 approved traps; 3 preferred.
+- NEVER mark a category N/A without explicit written reasoning.
+- MUST add a scenario to `.feature` for every approved `critical` or `major` trap.
+- MUST present the full trap summary first, then each trap individually in severity order: critical → major → minor.
+- MUST wait for explicit approval on each trap before writing anything.
+- Rejected traps MUST be logged with `approved: false` and a `rejection_reason`; NEVER silently drop them.
 
 ### Trap Categories
 
@@ -205,16 +218,16 @@ Interrogate the feature against all 7. Do not skip any.
 
 ### Activation Steps
 
-1. Read `features/<feature-name>.feature`: either just written in Stage-1 or provided as `feature_file` input.
+1. Read `features/<feature-name>.feature`: either just written in Stage-1 or provided as `feature_file` input; STOP and report error if neither is available.
 
 2. Interrogate the feature against all 7 trap categories. Draft findings internally.
 
 3. Present the full trap summary to User (all traps, all severities at a glance).
-   Wait for acknowledgment before proceeding to individual review.
+   MUST wait for acknowledgment before proceeding to individual review.
 
 4. Present each trap individually in severity order:
    - Show: category, severity, description, proposed scenario name
-   - Wait for: `approve` / `reject` / `edit` / `severity-change` / `demote`
+   - MUST wait for: `approve` / `reject` / `edit` / `severity-change` / `demote`
    - Incorporate feedback before moving to the next trap
 
 5. For each approved `critical` or `major` trap: append a scenario to `features/<feature-name>.feature` under a `# ---- Constraints identified ----` comment line.

@@ -7,6 +7,14 @@ description: Scores a feature across the pipeline quality dimensions using langu
 
 One job: produce a real verdict from current tool output and review evidence.
 
+## Hard Rules
+
+- NEVER bake one language's tools into generic logic.
+- NEVER score without fresh evidence.
+- NEVER score without the expert review and its scorecard.
+- NEVER treat final Stage-8 docs as part of the Stage-7 closure gate.
+- NEVER invent a passing verdict.
+
 ## Inputs
 
 - `feature_name` - required
@@ -54,11 +62,11 @@ It does **not** mean final Stage-8 docs. Stage-8 happens after a CLOSED verdict.
 
 ## Evidence Rules
 
-1. Tool-backed dimensions come only from `/quality-check`.
-2. Review-backed dimensions come from `/delivery-review`, `expert_review`, plus the files.
-3. Every note must cite a tool output line, file, or review observation.
-4. Confirm Stage-7 is in the pipeline's stages before scoring.
-5. Use `expert_review` as additional high-signal evidence, not as a replacement for tool-backed checks.
+1. Tool-backed dimensions MUST come only from `/quality-check`.
+2. Review-backed dimensions MUST come from `/delivery-review`, `expert_review`, plus the files.
+3. Every note MUST cite a tool output line, file, or review observation — no unsupported claims.
+4. MUST confirm Stage-7 is in the pipeline's stages before scoring; STOP if it is not.
+5. MUST use `expert_review` as additional high-signal evidence — NEVER as a replacement for tool-backed checks.
 
 ## Language Tool Defaults
 
@@ -102,11 +110,3 @@ Return `stage-07-result` with:
 - `remediation_cycle`
 - `remediation`
 - `verdict`
-
-## Hard Rules
-
-- Never bake one language's tools into generic logic.
-- Never score without fresh evidence.
-- Never score without the expert review and its scorecard.
-- Never treat final Stage-8 docs as part of the Stage-7 closure gate.
-- Never invent a passing verdict.

@@ -7,6 +7,17 @@ description: Writes the minimal Python implementation required to make RED pytes
 
 One job: make `python + pytest-bdd` tests GREEN with minimal code.
 
+## Hard Rules
+
+- MUST use typed functions and Pydantic models for public results.
+- NEVER rewrite scenario text or weaken assertions.
+- NEVER add speculative helpers or future-proof abstractions.
+- MUST scope patches as tightly as possible: patch at the call site in `src/`, not at the import in the test file, unless the test framework requires otherwise.
+- MUST match mock data to the shape of the real external output; NEVER invent a schema that hides a real integration gap.
+- NEVER put everything in a single file: MUST use one module per file, named after the main class or function.
+- MUST follow Clean Architecture with Port and Adapter patterns unless the existing codebase uses a different architectural style — in that case MUST follow the existing style. NEVER add abstraction layers beyond what is required to make tests GREEN.
+- Fixtures and patches in `conftest.py` are test infrastructure, NOT test logic modification — they are allowed and expected.
+
 ## Inputs
 
 - `feature_name` - required
@@ -27,35 +38,23 @@ The caller (agent) is responsible for running `/run-tests` and writing `stage-04
 ## Activation Steps
 
 1. If `correction_brief` is present: read it first.
-   - Do not repeat the `rejected_approach`.
-   - Apply the `direction` as a constraint on the implementation strategy.
+   - NEVER repeat the `rejected_approach`.
+   - Apply the `direction` as a hard constraint on the implementation strategy.
    - Treat `constraints_added` as additional hard constraints for this attempt.
-2. Read the step definitions and every `Then` assertion.
-3. Identify any test infrastructure gaps:
-   - external calls (HTTP, DB, filesystem, subprocess) that must be patched for the test to be deterministic
-   - shared fixtures required by multiple steps that do not exist yet in `conftest.py`
+2. Read the step definitions and every `Then` assertion; STOP and report error if `test_file` or `steps_file` is missing.
+3. Identify test infrastructure gaps:
+   - external calls (HTTP, DB, filesystem, subprocess) that MUST be patched for deterministic tests
+   - shared fixtures required by multiple steps not yet in `conftest.py`
    - mock data or factory functions needed to drive `Given` steps
-4. Add the required test infrastructure to `conftest.py` or a `tests/fixtures/` file as appropriate:
+4. Add required test infrastructure to `conftest.py` or `tests/fixtures/`:
    - `@pytest.fixture` definitions for shared setup
    - `unittest.mock.patch` or `pytest-mock` `mocker.patch` decorators or context managers for external calls
-   - mock response factories that return data matching the real external output shape
-   - **Do not change any `Then` assertion, step text, or scenario body while doing this**
+   - mock response factories returning data matching the real external output shape
+   - NEVER change any `Then` assertion, step text, or scenario body while doing this
 5. Implement one failing scenario at a time in `src/`.
 6. Return the implementation files, conftest changes, suppressed gold plating (each item with `item` and `reason`), and any surgical step-file corrections.
 
-> The caller (agent) is responsible for running `/run-tests` to check GREEN state during and after this skill's execution. This skill does not invoke commands directly.
-
-## Rules
-
-- Prefer typed functions and Pydantic models for public results.
-- Do not rewrite scenario text or weaken assertions.
-- Do not add speculative helpers or future-proof abstractions.
-- Fixtures and patches in `conftest.py` are allowed and expected when tests require them, this is test infrastructure, not test logic modification.
-- Mock data must match the shape of the real external output, do not invent a different schema that hides a real integration gap.
-- Patches must be scoped as tightly as possible: patch at the call site in `src/`, not at the import in the test file, unless the test framework requires otherwise.
-- One module per file, named after the main class or function.
-- NEVER do it all in a single file.
-- Try to respect Clean Architecture principles with Port and Adapter patterns, but do not add unnecessary abstraction layers if the test can be made green without them. Except if the existing codebase use another architectural style, in that case follow the existing style.
+> The caller (agent) is responsible for running `/run-tests` to verify GREEN state. This skill NEVER invokes commands directly.
 
 ## Result Schema
 

@@ -5,24 +5,28 @@ description: Retrospective prompt analysis. Reviews what happened during a pipel
 
 Run a retrospective analysis and produce a better starting prompt.
 
+## Hard Rules
+
+- NEVER invent friction points not grounded in actual events.
+- NEVER rewrite the improved prompt to include scope that was not delivered.
+- The improved prompt MUST be plain natural language — no commands, no flags, no stage references.
+- Zero friction points is a valid result. Report it honestly when the work ran clean.
+- This skill MAY be invoked at any time, not only after pipeline closure.
+
 ## Usage
 
-- `/retro-prompt <feature-name>`, analyse a closed pipeline by feature name
-- `/retro-prompt`, standalone mode, works on any task or conversation, no pipeline required
+- `/retro-prompt <feature-name>` — analyse a closed pipeline by feature name
+- `/retro-prompt` — standalone mode, works on any task or conversation, no pipeline required
 
 ## Purpose
 
-Look at what actually happened, identify where the original request caused friction, and return a plain natural language prompt that would have started the work more cleanly.
-
-This is a coaching tool. It teaches better prompting by grounding feedback in real events, not generic advice.
-
-Usable anywhere: after a pipeline closes, mid-session, after any completed task.
+Ground feedback in real events, not generic advice. Identify where the original request caused friction and return a plain natural language prompt that would have started the work more cleanly.
 
 ## Steps
 
-1. Resolve the input mode:
-   - **Feature-scoped**: read `.otsumi/<feature-name>/pipeline.json` and extract `description` as the original prompt, plus `language_id`, `stages`, `mode`. Collect all available stage output JSONs. Read `features/<feature-name>.feature` when present. Read `docs/decisions/` when present.
-   - **Standalone**: work from whatever context is available in the current session, conversation history, provided files, or an explicitly stated original request. At minimum, identify the original ask.
+1. Resolve input mode:
+   - **Feature-scoped**: read `.otsumi/<feature-name>/pipeline.json`, extract `description` as the original prompt plus `language_id`, `stages`, `mode`. Collect all available stage output JSONs. Read `features/<feature-name>.feature` when present. Read `docs/decisions/` when present.
+   - **Standalone**: work from session context, conversation history, provided files, or an explicitly stated original request. MUST identify the original ask at minimum.
 
 2. Reconstruct what was actually delivered:
    - behaviors specified or discovered during the work
@@ -30,24 +34,24 @@ Usable anywhere: after a pipeline closes, mid-session, after any completed task.
    - scope that was suppressed, escalated, or added after the initial request
    - corrections or rework that happened and what triggered them
 
-3. Identify friction points, each one must be grounded in something that actually happened:
-   - a trap or edge case the original prompt did not anticipate (discovered during the work)
+3. Identify friction points — each MUST be grounded in something that actually happened:
+   - a trap or edge case the original prompt did not anticipate
    - missing context that had to be inferred, asked, or assumed
    - a constraint that caused rework because it was not stated upfront
    - a scope ambiguity that expanded or contracted mid-work
-   - an implicit assumption that turned out to be wrong or contested
+   - an implicit assumption that turned out wrong or contested
 
 4. Compose the improved prompt.
 
-   The improved prompt is plain natural language, not a command, not a pipeline invocation, not a tool-specific format. It must work as a request in any context: a chat session, a new pipeline, a different tool entirely.
+   MUST be plain natural language — not a command, not a pipeline invocation, not a tool-specific format. MUST work as a request in any context: chat session, new pipeline, or different tool entirely.
 
-   It must:
+   MUST:
    - be written as a clear, direct natural language request
    - include the intent rewritten with the missing boundaries, constraints, and scope that the work discovered
    - embed key edge cases and constraints as part of the description, not as footnotes
    - be specific enough that a fresh context would understand exactly what to build, for whom, and within what limits
-   - not exceed what was actually delivered, do not add scope that was suppressed or out of bounds
-   - not reference pipeline commands, flags, stage numbers, or tool-specific syntax
+   - NEVER exceed what was actually delivered — do not add scope that was suppressed or out of bounds
+   - NEVER reference pipeline commands, flags, stage numbers, or tool-specific syntax
 
 5. Score the delta between the original prompt and the improved prompt:
 
@@ -60,7 +64,7 @@ Usable anywhere: after a pipeline closes, mid-session, after any completed task.
 
    Score each 1–5. 5 = no improvement possible on that axis.
 
-6. Present the result to User:
+6. Present the result:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -85,11 +89,3 @@ Coaching notes:
 ```
 
 7. If feature-scoped: log via `/atomic-log <feature-name> retro-prompt.completed "friction_points=<n> overall_delta=<score>"`.
-
-## Hard Rules
-
-- Never invent friction points not grounded in actual events.
-- Never rewrite the improved prompt to include scope that was not delivered.
-- If the work ran clean with no friction: report that honestly. Zero friction points is a valid result.
-- This command may be run at any time, not only after pipeline closure.
-- The improved prompt must be plain natural language. No commands, no flags, no stage references.
