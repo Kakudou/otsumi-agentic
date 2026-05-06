@@ -5,22 +5,18 @@ description: "Reverse-engineer existing code or behavior into feature candidates
 
 # Dev Retro Feature
 
-Recover feature specs from existing implementation.
+Recover feature specs from existing implementation — read-only.
 
 ## Usage
 
 `/dev-retro-feature <path-or-feature-area>`
-
-## Purpose
-
-Turn legacy or undocumented behavior into explicit feature candidates and testable specs.
 
 ## Hard Rules
 
 - NEVER mutate source files.
 - NEVER invent behavior not grounded in code, tests, docs, or runtime evidence.
 - NEVER claim full coverage when inspected evidence is partial.
-- Preserve uncertainty explicitly.
+- MUST preserve uncertainty explicitly.
 
 ## Steps
 

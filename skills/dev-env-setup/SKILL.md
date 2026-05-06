@@ -5,23 +5,19 @@ description: "Prepare and verify the development runtime for a selected language
 
 # Dev Env Setup
 
-Prepare runtime readiness.
+Verify runtime readiness before any implementation, tests, linting, formatting, typing, or dependency operation.
 
 ## Usage
 
 `/dev-env-setup --lang <language_id> [--feature <feature-name>]`
-
-## Purpose
-
-Ensure code/test/quality commands can run before any implementation, tests, linting, formatting, typing, or dependency operation.
 
 ## Hard Rules
 
 - NEVER infer language from natural language alone.
 - NEVER rewrite project configuration without explicit approval.
 - NEVER claim readiness without verification.
-- Prefer existing project config over creating new config.
-- Report missing tools precisely.
+- MUST prefer existing project config over creating new config.
+- MUST report missing tools precisely.
 
 ## Steps
 
@@ -30,7 +26,7 @@ Ensure code/test/quality commands can run before any implementation, tests, lint
    - Python: `pyproject.toml`, `setup.py`, `setup.cfg`, `.flake8`, `mypy.ini`, lockfiles, virtualenvs
 3. Detect test/quality tools.
 4. Verify command availability.
-5. If setup changes are needed, propose them before applying.
+5. If setup changes are needed, propose them BEFORE applying.
 6. Return:
 
 ```json

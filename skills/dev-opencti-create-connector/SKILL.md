@@ -5,9 +5,7 @@ description: Scaffold a production-grade OpenCTI external-import connector throu
 
 # dev-opencti-create-connector
 
-Scaffold a complete OpenCTI external-import connector project from scratch through a step-by-step wizard.
-
-The skill gathers every required connector detail before writing files, generates a full project skeleton, adds tests for every generated module, runs local quality checks, and optionally prepares local commits through the git discipline skill. It never pushes.
+Scaffold a complete OpenCTI external-import connector through a step-by-step wizard. Gather every required detail before writing files, generate a full project skeleton, add tests for every generated module, run local quality checks, and optionally prepare local commits through the git discipline skill. NEVER push.
 
 ## Usage
 
@@ -15,13 +13,13 @@ The skill gathers every required connector detail before writing files, generate
 /dev-opencti-create-connector --external-import
 ```
 
-No additional flags are required. The skill drives the interactive wizard.
+No additional flags required. The skill drives the interactive wizard.
 
 ## Required Companion Skills
 
-- `/git-commits` — used only if the user explicitly asks to create commits after generation.
-- `/dev-run-tests` or project-equivalent test command — used for post-generation test execution when available.
-- `/dev-quality-check` or project-equivalent quality command — used for lint/format/type checks when available.
+- `/git-commits` — used ONLY if the user explicitly asks for local commits after generation.
+- `/dev-run-tests` or project-equivalent test command — for post-generation test execution when available.
+- `/dev-quality-check` or project-equivalent quality command — for lint/format/type checks when available.
 
 If companion skills are unavailable, execute equivalent local commands and report the exact commands used.
 
@@ -53,9 +51,9 @@ If companion skills are unavailable, execute equivalent local commands and repor
 
 ## Wizard Protocol
 
-Run the wizard step by step. Ask one question or one tightly scoped confirmation at a time. Do not ask a large bundle of unrelated questions.
+Run the wizard step by step. Ask one question or one tightly scoped confirmation at a time. NEVER ask a large bundle of unrelated questions.
 
-Persist answers in a `connector_blueprint` object. Do not write files until the final blueprint is confirmed.
+Persist answers in a `connector_blueprint` object. NEVER write files until the final blueprint is confirmed.
 
 ### Step 1 — Connector Identity
 

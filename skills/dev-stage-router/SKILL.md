@@ -5,22 +5,18 @@ description: "Route language-bound development stages to the correct adapter ski
 
 # Dev Stage Router
 
-Route language-bound stages to adapter skills.
+Route language-bound stages to adapter skills. Preserve adapter routing for Stage-3, Stage-4, and Stage-5 until language adapters are fully manifest-driven.
 
 ## Usage
 
 `/dev-stage-router --stage <stage-id> --lang <language_id> <payload>`
 
-## Purpose
-
-Preserve adapter routing for Stage-3, Stage-4, and Stage-5 until language adapters are fully manifest-driven.
-
 ## Hard Rules
 
 - NEVER infer language from natural language.
-- NEVER route a stage not present in the active workflow state.
+- NEVER route a stage that is not in the active workflow state.
 - NEVER call an adapter that does not exist.
-- NEVER transform payload semantics; only route and normalize.
+- NEVER transform payload semantics — only route and normalize.
 
 ## Routing Table
 

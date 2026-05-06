@@ -5,22 +5,18 @@ description: "Review implementation delivery quality across architecture, mainta
 
 # Dev Delivery Review
 
-Produce a structured delivery review.
+Evaluate whether delivered work is coherent, maintainable, scoped, and ready for final scoring.
 
 ## Usage
 
 `/dev-delivery-review <feature-name>`
 
-## Purpose
-
-Evaluate whether the delivered work is coherent, maintainable, scoped, and ready for final scoring.
-
 ## Hard Rules
 
-- NEVER treat passing tests as sufficient by itself.
+- MUST cite concrete files, artifacts, or observations.
+- NEVER treat passing tests as sufficient by themselves.
 - NEVER invent architecture that is not visible in files.
 - NEVER ignore scope creep or gold plating.
-- Cite concrete files, artifacts, or observations.
 
 ## Review Areas
 

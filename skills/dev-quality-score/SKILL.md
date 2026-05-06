@@ -1,27 +1,23 @@
 ---
-name: quality-score
+name: dev-quality-score
 description: "Score final output using evidence and thresholds, producing CLOSED, REMEDIATION REQUIRED, or ESCALATED verdicts."
 ---
 
-# Quality Score
+# Dev Quality Score
 
-Produce an evidence-backed quality verdict.
+Aggregate quality evidence into an evidence-backed final verdict — no vibes.
 
 ## Usage
 
-`/quality-score <feature-name>`
-
-## Purpose
-
-Aggregate quality evidence into a final verdict without vibes.
+`/dev-quality-score <feature-name>`
 
 ## Hard Rules
 
 - NEVER score without evidence.
 - NEVER pass if any blocking dimension is below threshold.
 - NEVER average away a critical failure.
-- ALWAYS list failing dimensions and remediation guidance.
-- Stop after the configured maximum remediation cycles.
+- MUST list failing dimensions and remediation guidance.
+- MUST stop after the configured maximum remediation cycles.
 
 ## Default Dimensions
 
@@ -33,7 +29,7 @@ Aggregate quality evidence into a final verdict without vibes.
 - test_quality
 - docs_quality
 
-Default threshold: every dimension must be at least 4/5 unless the workflow defines otherwise.
+Default threshold: every dimension MUST be at least 4/5 unless the workflow defines otherwise.
 
 ## Verdicts
 

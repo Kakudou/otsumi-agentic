@@ -5,20 +5,16 @@ description: "Show the artifacts and file changes associated with one stage outp
 
 # Flow Diff Stage
 
-Inspect what changed at a stage.
+Provide transparent, read-only visibility into what changed at a stage.
 
 ## Usage
 
 `/flow-diff-stage <feature-name> <stage-id>`
 
-## Purpose
-
-Provide transparent, read-only visibility into stage changes.
-
 ## Hard Rules
 
 - NEVER mutate files.
-- NEVER infer changed files if the artifact does not record them; report missing metadata.
+- NEVER infer changed files when the artifact does not record them — report missing metadata.
 - NEVER hide missing artifacts.
 
 ## Steps

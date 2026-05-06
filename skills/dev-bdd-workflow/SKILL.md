@@ -5,11 +5,7 @@ description: "BDD delivery workflow doctrine: feature specification, traps, RED 
 
 # Dev BDD Workflow
 
-Provide BDD workflow orchestration doctrine to the host workflow.
-
-## Purpose
-
-Define the software delivery flow. This is not an agent identity. It is a workflow skill the host can select for production feature work.
+Provide BDD workflow orchestration doctrine to the host workflow. This is a workflow skill, NOT an agent identity.
 
 ## Hard Rules
 
@@ -18,7 +14,7 @@ Define the software delivery flow. This is not an agent identity. It is a workfl
 - Stage routing MUST use explicit state and adapter skills.
 - NEVER implement before RED tests exist when the active stages include tests.
 - NEVER refactor before tests are GREEN when test-driven stages are active.
-- User-facing questions are handled by the host workflow, not by hidden stage workers.
+- User-facing questions MUST be handled by the host workflow, not by hidden stage workers.
 
 ## Canonical Stages
 
@@ -35,38 +31,19 @@ Define the software delivery flow. This is not an agent identity. It is a workfl
 
 ## Required Workflow Skills
 
-- `/flow-start-pipeline`
-- `/flow-continue`
-- `/flow-complete-stage`
-- `/flow-abort`
-- `/flow-replay`
-- `/flow-diff-stage`
-- `/core-atomic-log`
-- `/core-status`
-- `/core-backlog`
+`/flow-start-pipeline`, `/flow-continue`, `/flow-complete-stage`, `/flow-abort`, `/flow-replay`, `/flow-diff-stage`, `/core-atomic-log`, `/core-status`, `/core-backlog`
 
 ## Development Skills
 
-- `/dev-env-setup`
-- `/dev-run-tests`
-- `/dev-quality-check`
-- `/dev-delivery-review`
-- `/dev-expert-code-review`
-- `/quality-score`
-- `/doc-writer`
-- `/doc-decision-record`
+`/dev-env-setup`, `/dev-run-tests`, `/dev-quality-check`, `/dev-delivery-review`, `/dev-expert-code-review`, `/dev-quality-score`, `/doc-writer`, `/doc-decision-record`
 
 ## Stage Adapter Skills
 
-- `/dev-stage-router`
-- `/dev-bdd-gherkin`
-- `/dev-python-test-generator`
-- `/dev-python-implementer`
-- `/dev-python-refactorer`
+`/dev-stage-router`, `/dev-bdd-gherkin`, `/dev-python-test-generator`, `/dev-python-implementer`, `/dev-python-refactorer`
 
 ## Correction Brief Protocol
 
-When implementation or refactor output violates a rule, compose a correction brief before retry:
+When implementation or refactor output violates a rule, compose a correction brief BEFORE retry:
 
 ```yaml
 correction_brief:
@@ -76,7 +53,7 @@ correction_brief:
   constraints_added: []
 ```
 
-The brief must cite a concrete violation, describe the rejected pattern, give a different strategy, and preserve newly discovered constraints.
+The brief MUST cite a concrete violation, describe the rejected pattern, give a different strategy, and preserve newly discovered constraints.
 
 ## Remediation Loop
 
@@ -94,4 +71,4 @@ When quality scoring requires remediation:
 
 ## Pre-Pipeline Context Scan
 
-Before Stage-1, scan project structure and conventions: source directories, tests, docs, config files, existing style, existing workflow records. This scan is advisory and not a formal stage artifact.
+Before Stage-1, scan project structure and conventions: source directories, tests, docs, config files, existing style, existing workflow records. The scan is advisory and is NOT a formal stage artifact.

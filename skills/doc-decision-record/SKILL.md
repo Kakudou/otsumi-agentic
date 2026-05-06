@@ -5,27 +5,23 @@ description: "Create ADR/TDR decision records or explicit no-record reasoning ba
 
 # Doc Decision Record
 
-Record architectural or technical decisions.
+Record architectural or technical decisions, or document why no record is needed.
 
 ## Usage
 
 `/doc-decision-record <feature-name>`
-
-## Purpose
-
-Ensure meaningful decisions survive the work. If no decision was made, record why no ADR/TDR is required.
 
 ## Hard Rules
 
 - NEVER silently skip decision evaluation.
 - NEVER create a fake ADR for a non-decision.
 - NEVER invent context not present in artifacts.
-- ALWAYS return either records created or no-record reasoning.
+- MUST return either records created or no-record reasoning.
 
 ## Decision Types
 
-- ADR: architecture decision
-- TDR: technical decision
+- **ADR**: architecture decision
+- **TDR**: technical decision
 
 ## Steps
 

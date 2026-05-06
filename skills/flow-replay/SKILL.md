@@ -5,22 +5,18 @@ description: "Replay a closed or aborted pipeline from a selected stage while pr
 
 # Flow Replay
 
-Replay workflow stages from a chosen point.
+Re-run downstream workflow stages while preserving earlier accepted artifacts.
 
 ## Usage
 
 `/flow-replay <feature-name> --from <stage-id>`
-
-## Purpose
-
-Re-run downstream work while preserving earlier accepted artifacts.
 
 ## Hard Rules
 
 - NEVER replay a running pipeline.
 - NEVER overwrite downstream artifacts without explicit confirmation.
 - NEVER mutate upstream artifacts before the replay point.
-- ALWAYS record replay origin and replay point.
+- MUST record replay origin and replay point.
 
 ## Steps
 

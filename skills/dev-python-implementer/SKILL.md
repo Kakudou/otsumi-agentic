@@ -5,23 +5,19 @@ description: "Implement the smallest Python code needed to make approved tests p
 
 # Dev Python Implementer
 
-Implement minimal Python behavior.
+Make approved RED tests pass with the smallest coherent Python implementation.
 
 ## Usage
 
 `/dev-python-implementer <payload>`
-
-## Purpose
-
-Make approved RED tests pass with the smallest coherent implementation.
 
 ## Hard Rules
 
 - NEVER add behavior not demanded by tests/spec.
 - NEVER collapse unrelated concerns into one file.
 - NEVER rewrite broad architecture unless required.
-- NEVER ignore correction briefs.
-- Preserve existing project style.
+- NEVER ignore a correction brief.
+- MUST preserve existing project style.
 
 ## Steps
 
@@ -29,4 +25,4 @@ Make approved RED tests pass with the smallest coherent implementation.
 2. Implement only missing behavior.
 3. Add minimal supporting code.
 4. Run focused tests when authorized.
-5. Return files changed and GREEN evidence expected from caller.
+5. Return files changed and the GREEN evidence the caller expects.

@@ -5,15 +5,11 @@ description: "Finalize a workflow stage by updating state, logging completion, r
 
 # Flow Complete Stage
 
-Finalize one completed stage.
+Centralize state updates after one stage finishes. Records completion and computes the next routing state — does NOT perform the stage work.
 
 ## Usage
 
 `/flow-complete-stage <feature-name> <stage-id> "<summary>"`
-
-## Purpose
-
-Centralize state updates after a stage finishes. This skill does not perform the stage work; it records completion and computes the next routing state.
 
 ## Hard Rules
 

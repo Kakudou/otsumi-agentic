@@ -5,22 +5,18 @@ description: "Abort a running or paused pipeline safely while preserving artifac
 
 # Flow Abort
 
-Abort a running or paused workflow.
+Stop a workflow without deleting evidence. Aborted state remains inspectable and replayable.
 
 ## Usage
 
 `/flow-abort <feature-name> "<reason>"`
 
-## Purpose
-
-Stop work without deleting evidence. Aborted state remains inspectable and replayable.
-
 ## Hard Rules
 
 - NEVER delete artifacts.
 - NEVER abort a closed pipeline without explicit force semantics.
-- ALWAYS record a reason.
-- ALWAYS log the abort event.
+- MUST record a reason.
+- MUST log the abort event.
 
 ## Steps
 

@@ -5,7 +5,7 @@ description: "Create safe local atomic commits with focused diffs, short one-lin
 
 # Git Commits
 
-Create atomic local commits.
+Turn working-tree changes into focused, reviewable local commits.
 
 ## Usage
 
@@ -14,19 +14,14 @@ Create atomic local commits.
 - `/git-commits --save`
 - `/git-commits --fixup <commit>`
 
-## Purpose
-
-Turn working tree changes into focused, reviewable local commits.
-
 ## Hard Rules
 
 - NEVER push. Local commits only.
 - NEVER commit directly to `main` or `master` unless explicitly authorized.
-- Commit message MUST be one short summary line only.
-- Do not add a commit body.
-- One commit equals one logical unit of change.
-- The committed state should build/pass relevant tests when possible.
-- If one emoji/type cannot describe the change, split the commit.
+- The commit message MUST be one short summary line — no body.
+- One commit MUST equal one logical unit of change.
+- The committed state SHOULD build / pass relevant tests when possible.
+- If one emoji/type cannot describe the change, MUST split the commit.
 
 ## Commit Message Format
 
@@ -36,7 +31,7 @@ Prefer:
 <emoji> <type>(<scope>): <message>
 ```
 
-or plain Conventional Commit if emoji is not requested:
+Or plain Conventional Commit if emoji is not requested:
 
 ```text
 <type>(<scope>): <message>
@@ -54,7 +49,7 @@ fix(config): read default port from env
 
 ## Save Commits
 
-Use `save(scope): message` for temporary checkpoints. Save commits are allowed during development but should be squashed/reworked before final merge.
+Use `save(scope): message` for temporary checkpoints. Save commits are allowed during development but SHOULD be squashed/reworked before final merge.
 
 ## Fixup Commits
 
@@ -65,17 +60,17 @@ git commit --fixup=<target>
 git rebase -i --autosquash <base>
 ```
 
-Fixups are temporary scaffolding; they should not survive final history unless the workflow explicitly allows it.
+Fixups are temporary scaffolding; they SHOULD NOT survive final history unless the workflow explicitly allows it.
 
 ## Steps
 
-1. Inspect branch and refuse unsafe branch unless authorized.
+1. Inspect branch and refuse unsafe branches unless authorized.
 2. Inspect working tree.
 3. Group changes by logical unit.
 4. For each group:
    - show files
    - explain why the group is atomic
-   - propose one-line message
+   - propose a one-line message
 5. Stage only that group.
 6. Run relevant tests/checks if feasible.
 7. Commit locally.

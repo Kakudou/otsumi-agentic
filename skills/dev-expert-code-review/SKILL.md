@@ -5,22 +5,18 @@ description: "Perform a deep expert code review with concrete findings, risk lev
 
 # Dev Expert Code Review
 
-Run a deep code review.
+Find subtle problems beyond mechanical quality checks.
 
 ## Usage
 
 `/dev-expert-code-review <feature-name>`
 
-## Purpose
-
-Find subtle problems beyond mechanical quality checks.
-
 ## Hard Rules
 
-- NEVER provide vague criticism without evidence.
+- MUST back every finding with concrete evidence — NEVER vague criticism.
+- MUST separate blockers from non-blocking improvements.
 - NEVER invent code behavior.
 - NEVER rewrite the code directly unless the caller requested an edit task.
-- Separate blockers from non-blocking improvements.
 
 ## Review Dimensions
 

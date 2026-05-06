@@ -5,22 +5,18 @@ description: "Perform safe Python refactors as atomic behavior-preserving change
 
 # Dev Python Refactorer
 
-Refactor Python safely.
+Improve Python structure while preserving behavior.
 
 ## Usage
 
 `/dev-python-refactorer <payload>`
 
-## Purpose
-
-Improve structure while preserving behavior.
-
 ## Hard Rules
 
 - NEVER change behavior intentionally.
 - NEVER refactor without GREEN tests as a baseline when tests exist.
-- One refactor step should be atomic and reversible.
-- If tests fail after a refactor, revert or stop.
+- One refactor step MUST be atomic and reversible.
+- If tests fail after a refactor step, MUST revert or stop.
 
 ## Steps
 

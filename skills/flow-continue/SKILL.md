@@ -5,15 +5,11 @@ description: "Resume a paused pipeline and validate any user-owned implementatio
 
 # Flow Continue
 
-Resume paused work.
+Resume an assisted or paused workflow safely. When the user owned a stage, validate that work before moving forward.
 
 ## Usage
 
 `/flow-continue <feature-name>`
-
-## Purpose
-
-Resume an assisted or paused workflow safely. When the user owned a stage, validate that work before moving forward.
 
 ## Hard Rules
 
@@ -29,8 +25,8 @@ Resume an assisted or paused workflow safely. When the user owned a stage, valid
 3. Identify `next_stage`.
 4. If resuming after user-owned implementation/refactor:
    - inspect changed files
-   - run required tests through `/dev-run-tests`
-   - run required quality checks through `/dev-quality-check`
+   - run required tests via `/dev-run-tests`
+   - run required quality checks via `/dev-quality-check`
    - write the appropriate stage output artifact if validation passes
 5. Update `resumed_at`.
 6. Return the next workflow action.

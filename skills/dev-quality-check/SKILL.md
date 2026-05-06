@@ -5,22 +5,18 @@ description: "Run tool-backed development quality checks: linting, formatting, i
 
 # Dev Quality Check
 
-Run static/tool-backed quality checks.
+Collect objective quality evidence before final scoring or delivery review.
 
 ## Usage
 
 `/dev-quality-check <feature-name>`
 
-## Purpose
-
-Collect objective quality evidence before final scoring or delivery review.
-
 ## Hard Rules
 
 - NEVER mark a dimension passed if its command failed.
-- NEVER invent a command that the project does not support.
+- NEVER invent a command the project does not support.
 - NEVER hide missing tool configuration.
-- Missing tool is a warning or failure according to the workflow threshold.
+- A missing tool is a warning or failure per the workflow threshold.
 
 ## Dimensions
 

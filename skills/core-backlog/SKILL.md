@@ -5,23 +5,19 @@ description: "List planned feature or task records produced by workflow escalati
 
 # Core Backlog
 
-List planned work records.
+List planned work records — read-only.
 
 ## Usage
 
 - `/core-backlog`
 - `/core-backlog <scope-name>`
 
-## Purpose
-
-Show planned items recorded by workflows, especially items intentionally suppressed from current scope and queued for later.
-
 ## Hard Rules
 
 - NEVER auto-start planned work.
-- NEVER convert a planned item into a running workflow without explicit user command.
-- Preserve origin and source context.
-- Report stale or malformed planned records.
+- NEVER convert a planned item into a running workflow without an explicit user command.
+- MUST preserve origin and source context.
+- MUST report stale or malformed planned records.
 
 ## Steps
 
@@ -31,5 +27,5 @@ Show planned items recorded by workflows, especially items intentionally suppres
    - source workflow/feature
    - status
    - origin
-   - priority if present
+   - priority (when present)
 4. Display a compact backlog with suggested explicit start commands.

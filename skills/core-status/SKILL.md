@@ -5,23 +5,19 @@ description: "Display current status for one workflow/pipeline or summarize all 
 
 # Core Status
 
-Report workflow or pipeline status from persisted state.
+Read-only view of workflow or pipeline status from persisted state.
 
 ## Usage
 
 - `/core-status`
 - `/core-status <scope-name>`
 
-## Purpose
-
-Give a read-only view of workflow state without advancing, fixing, or mutating anything.
-
 ## Hard Rules
 
 - NEVER mutate state.
-- NEVER infer completion if required artifacts are missing.
-- Report missing or malformed state explicitly.
-- Do not execute workflow stages.
+- NEVER infer completion when required artifacts are missing.
+- NEVER execute workflow stages.
+- MUST report missing or malformed state explicitly.
 
 ## Steps
 
@@ -30,7 +26,7 @@ Give a read-only view of workflow state without advancing, fixing, or mutating a
 3. For each state root, report:
    - name
    - status
-   - mode when present
+   - mode (when present)
    - current stage
    - last completed stage
    - next stage

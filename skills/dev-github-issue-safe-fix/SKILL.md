@@ -7,7 +7,7 @@ description: Handle a GitHub issue by ID through the BDD delivery workflow with 
 
 Fix a GitHub issue by ID through the BDD delivery workflow while preserving the existing codebase, test conventions, and project style.
 
-This skill is intentionally pre-pipeline. It gathers issue context, verifies the current source, scans test conventions, asks the user for the pipeline mode, refines the feature request through the prompt-refinement skill, then starts the pipeline with the correct stages.
+This skill is pre-pipeline. It gathers issue context, verifies current source, scans test conventions, asks the user for pipeline mode, refines the feature request through prompt-refinement, then starts the pipeline with the correct stages.
 
 ## Usage
 
@@ -19,11 +19,11 @@ Use when repository context is already known and the requested work is anchored 
 
 ## Required Companion Skills
 
-- `/agent-prompt-master` — mandatory prompt refinement before starting the pipeline.
-- `/flow-start-pipeline` — mandatory execution entrypoint after the checklist is complete.
-- `/dev-bdd-workflow` — the expected workflow semantics for RED → GREEN delivery.
+- `/agent-prompt-master` — MANDATORY prompt refinement before starting the pipeline.
+- `/flow-start-pipeline` — MANDATORY execution entrypoint after the checklist is complete.
+- `/dev-bdd-workflow` — expected workflow semantics for RED → GREEN delivery.
 
-If the host environment still exposes unprefixed compatibility names, the caller may map these names to local equivalents, but the behavior in this skill remains mandatory.
+If the host environment exposes unprefixed compatibility names, callers may map them to local equivalents, but the behavior in this skill remains mandatory.
 
 ## Hard Rules
 
@@ -50,7 +50,7 @@ If the host environment still exposes unprefixed compatibility names, the caller
 
 ## Execution Protocol
 
-Complete every step in order. Do not reorder, merge, or skip steps.
+Complete every step in order. NEVER reorder, merge, or skip steps.
 
 ### Step 1 — Resolve Issue Context
 
@@ -248,9 +248,9 @@ Never introduce `pytest-bdd` or `.feature` files if the project does not already
 - Stage 3 writes tests only.
 - Stage 4 writes source only.
 - Stage 5 refactors source only while preserving behavior.
-- Do not combine test and source edits in one stage.
-- Limit edits to files directly related to the issue.
-- If correctness requires touching a file outside declared scope, surface the reason before touching it.
+- NEVER combine test and source edits in one stage.
+- MUST limit edits to files directly related to the issue.
+- If correctness requires touching a file outside declared scope, MUST surface the reason before touching it.
 
 ## Final Output Before Pipeline Start
 

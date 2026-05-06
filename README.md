@@ -1,252 +1,198 @@
 # Otsumi
 
+## TL;DR
+
+- Multi-agent harness for Markdown-driven AI CLIs. Native on Claude Code; small adapter shim for Copilot CLI and OpenCode. No SDK, no runtime, no lock-in.
+- Architecture is shogi: eight role-bound agents, the King talks to you, the Bishop plans, six specialists execute.
+- Each specialist owns exactly one concern: requirements, validation, writing, evidence, atomic execution, challenge.
+- 34 stateless skills, domain-prefixed (`agent-`, `core-`, `flow-`, `dev-`, `dev-python-`, `design-`, `doc-`, `git-`); invocable standalone or chained inside a workflow.
+- BDD delivery workflow loads on demand. Assisted mode hands off implementation; vibecoding mode automates everything except approval gates.
+- Every closed feature leaves Gherkin specs, RED tests, ADRs, scorecards, and append-only event logs in `.otsumi/<feature-name>/`.
+- Drift guardrails baked into every agent file. When behavior leaves scope, it routes out instead of bleeding.
+- Plain Markdown all the way down. Clone, symlink `system.md` + `agents/` + `skills/`, run. The voice manual ships as the `agent-load-persona` skill.
+
 > *"Checkmate isn't a move. It's a verdict."*
 
-**Otsumi** is a jack-of-all-trades AI agent that handles any user inquiry — and when the work is a production feature, she loads the BDD delivery pipeline that turns a description into closed, scored, documented code, without letting the machine make the decisions that matter.
+A multi-agent harness that turns any Markdown-driven AI CLI into a disciplined, role-separated execution board. The metaphor is **shogi** (Japanese chess). Each piece has one job. The King talks to you, the Bishop plans, the pieces around them execute. Nothing pretends to be something it isn't.
 
-She is the front gate. Every request enters through her. Simple questions get direct answers. Code edits get done. Prompt engineering, research, writing — handled. But when you need a disciplined feature delivery, she optimizes your prompt, loads the pipeline brain, and drives the full BDD workflow with specialist subagents.
-
-It is not a vibe-and-ship wrapper. It is a precision instrument that also happens to be your general-purpose ally.
+Native fit for **Claude Code**. Adapted for **Copilot CLI** and **OpenCode** via small instruction shims (see `instructions/`). No SDK, no runtime, plain Markdown all the way down.
 
 ---
 
-## Why This Exists
+## What This Is
 
-Most AI coding tools solve the wrong problem. They make the *writing* of code faster. They do nothing for the discipline around it.
+Most AI coding stacks collapse everything into one agent that does everything badly. Otsumi splits the work along role boundaries that don't blur:
 
-What happens to the spec? Where are the test scenarios? Who decided on this architecture and why? What did the quality check actually find?
+- **One agent talks to the user.** Only one. The rest are hidden.
+- **One agent plans the work.** It returns a plan and shuts up.
+- **Specialists do the work.** Each owns exactly one concern: requirements, evidence, writing, validation, atomic execution, challenge.
 
-Otsumi answers those questions by making them unavoidable.
+When you need a casual answer, you get one. When you need disciplined feature delivery, the BDD workflow loads and the board organizes around it. When you need anything else (research, prompt refinement, skill creation, code review), there's a workflow or a skill for it.
 
-Every feature runs through a staged pipeline:
-
-- behavior defined as Gherkin before a line of code is written
-- adversarial trap analysis to surface edge cases the happy-path spec missed
-- RED tests generated against an implementation surface that does not exist yet
-- implementation that makes those tests GREEN, nothing more
-- atomic refactor with tests enforced at every step
-- architectural decisions recorded as ADR/TDR so they survive the next sprint
-- 7-dimension quality scoring with mandatory evidence before closure
-- human-facing documentation generated from real artifacts, not invented summaries
-
-You choose what you own. You choose what the pipeline owns. The pipeline never pretends a stage was completed when it was not.
+It's not a vibe-and-ship wrapper. It's a precision instrument that happens to be your general-purpose ally.
 
 ---
 
-## Two Modes
+## The Board
 
-### Assisted
+Eight shogi pieces. Each is an agent file in `agents/`. Each owns one role and refuses everything else.
 
-You write the code. Otsumi handles everything else.
+| Piece | Agent | Role |
+|---|---|---|
+| 王将 King | **Ōshō** (`osho`) | The only user-facing agent. Owns voice, refines prompts, invokes specialists, synthesizes the final answer. The mouth, the mask, the hand on the board; never the board itself. |
+| 角行 Bishop | **Kakugyō** (`kakugyo`) | Hidden orchestrator. Takes a refined request, decomposes it, picks agents/skills/workflows, returns an invocation plan. Owns the flow, never the work. |
+| 金将 Gold General | **Kinshō** (`kinsho`) | Requirements and acceptance owner. Defines goals, non-goals, output contracts, quality thresholds, definition of done. Decides what "good enough" means before anyone pretends the job is done. |
+| 銀将 Silver General | **Ginshō** (`ginsho`) | Quality validator. Checks produced work against Kinshō's contract. Pass / fail / partial / blocked, with reasons sharp enough to act on. Validates only; never repairs. |
+| 飛車 Rook | **Hisha** (`hisha`) | Structured writing. Notes, docs, summaries, schemas, decision narratives, polished prose. Shapes thought into readable structure; does not own truth or acceptance. |
+| 香車 Lance | **Kyōsha** (`kyosha`) | External evidence. Web search, scraping, source inspection, citations with metadata. Brings back the signal; never crowns the meaning. |
+| 歩兵 Pawn | **Fuhyō** (`fuhyo`) | Atomic execution. One bounded task per invocation, explicit input, explicit output. Refuses anything that requires strategy. |
+| 桂馬 Knight | **Keima** (`keima`) | Constructive challenger. Finite critique loops on plans and outputs: blind spots, alternatives, simplifications. Caps itself; never spirals into infinite debate. |
 
-The pipeline runs the spec, the traps, the RED tests, the decisions, the quality review, and the docs. You implement and refactor at your own pace. When you're done, `/continue` validates your work and advances the pipeline.
+The traffic always flows the same way:
 
 ```
-/start-pipeline --mode assisted --lang python \
-  user authentication with email and password
+user → Ōshō → agent-prompt-master refinement → Kakugyō plan → Ōshō invokes specialists → Ōshō synthesizes → user
+```
 
-→ [S1] Gherkin spec written, scenarios presented for your approval
-→ [S2] Trap analysis run, edge cases surfaced for your approval
-→ [S3] RED tests generated, confirmed failing
-→ PIPELINE PAUSES, you implement
+Every actionable request goes through Kakugyō first. No specialist talks to the user. No specialist invokes another specialist. The board stays clean.
 
-/continue user-authentication
+---
 
-→ [S6] ADR/TDR recorded
-→ PIPELINE PAUSES, you review the scorecard
+## Skills
 
-/continue user-authentication
+Skills are stateless capability units invoked as `/skill-name`. They live in `skills/<skill-name>/SKILL.md`. Names are domain-prefixed for grep-ability.
 
-→ [S7] Quality scored: 7 dimensions, 4/5 minimum each
-→ [S8] Documentation generated
+| Domain | Examples |
+|---|---|
+| `agent-` | Prompt refinement, retrospective analysis, skill generation |
+| `core-` | Workflow utilities: atomic logs, status, backlog, command recovery |
+| `flow-` | Pipeline lifecycle: start, continue, complete, abort, replay, diff |
+| `dev-` | Software delivery: BDD workflow, env setup, test runs, quality checks, reviews |
+| `dev-python-` | Python adapters: test generator, implementer, refactorer |
+| `design-` | Visual/frontend design direction |
+| `doc-` | Documentation, editorial refactor, decision records, Excalidraw |
+| `git-` | Local git hygiene |
+
+Full index: [`skills/REGISTRY.md`](skills/REGISTRY.md).
+
+Skills can run standalone, or be chained inside a workflow. None of them know about the agent layer.
+
+---
+
+## The BDD Workflow
+
+When the request is "deliver this feature properly," Kakugyō selects the BDD delivery workflow. Eight stages. No silent skips.
+
+| Stage | Skill | What Happens |
+|---|---|---|
+| **S1** | `dev-bdd-gherkin` | Behavior contract written as Gherkin. Every scenario presented for approval. |
+| **S2** | `dev-bdd-gherkin` (trap mode) | Adversarial trap analysis: boundaries, auth gaps, concurrency, ambiguous terms. Traps approved before promotion. |
+| **S3** | `dev-stage-router` → `dev-<lang>-test-generator` | RED tests generated against surfaces that don't exist yet. RED confirmed before moving on. |
+| **S4** | `dev-stage-router` → `dev-<lang>-implementer` | Minimal implementation to GREEN. Nothing more. |
+| **S5** | `dev-stage-router` → `dev-<lang>-refactorer` | Atomic refactor. Tests after every change. RED rolls back. |
+| **S6** | `doc-decision-record` | ADR/TDR if a real decision was made. Explicit no-record reasoning otherwise. |
+| **S7** | `dev-quality-score` | Evidence-backed scoring. Blocking dimensions enforce closure gates. |
+| **S8** | `doc-writer` | Human-facing docs from real artifacts only. No invented behavior. |
+
+### Two Modes
+
+**Assisted**: you write the code, the workflow handles the rest.
+
+```
+/flow-start-pipeline --mode assisted --lang python "user authentication with email and password"
+
+→ S1 Gherkin spec: approved
+→ S2 Trap analysis: approved
+→ S3 RED tests confirmed
+→ PAUSED: you implement and refactor
+
+/flow-continue user-authentication
+
+→ S6 decisions
+→ S7 quality scored
+→ S8 docs
 → CLOSED
 ```
 
-**You own:** the implementation, the refactor, and the pace.  
-**Otsumi owns:** spec, traps, tests, decisions, quality review, docs, and the gates between them.
-
-### Vibecoding
-
-The pipeline handles every automated stage. You approve at checkpoints.
+**Vibecoding**: the workflow runs every automatable stage. You approve at the gates.
 
 ```
-/start-pipeline --mode vibecoding --lang python \
-  cart checkout with coupon validation
-
-→ All 8 stages run end-to-end
-→ You approve scenarios, traps, and the final scorecard
-→ CLOSED
+/flow-start-pipeline --mode vibecoding --lang python "cart checkout with coupon validation"
 ```
 
-**You own:** approval gates and architecture guidance.  
-**Otsumi owns:** everything that can be automated.
+You own approvals and architectural intent. Otsumi owns the rest.
 
 ---
 
 ## Install
 
-Otsumi is tool-agnostic. The pipeline lives in plain Markdown. Clone once, symlink into whatever AI CLI you use.
+Native on Claude Code. Other AI CLIs (Copilot CLI, OpenCode) need a small instruction shim from `instructions/` to handle subagent delegation. Clone once, symlink into your tool's config directory.
+
+Two surfaces do separate jobs:
+
+- `system.md`: short, role-agnostic system context loaded for every agent invocation. Symlink this as your tool's global instruction file.
+- `skills/agent-load-persona/SKILL.md`: the full Otsumi voice manual, packaged as a skill. Loaded by Ōshō on session start via `/agent-load-persona`. No path discovery, no `view` — the harness resolves it.
 
 ### 1. Clone
 
 ```bash
-git clone https://github.com/kakudou/otsumi-agentic.git ~/.otsumi-agentic
+git clone https://github.com/kakudou/otsumi-ghcp.git ~/.otsumi
 ```
 
 ### 2. Symlink
 
-The most easiest way is to create a simlink in your tool's configuration directory.
-
-#### For Claude Code
+**Claude Code**
 
 ```bash
-ln -s ~/.otsumi-agentic/persona.md      ~/.claude/CLAUDE.md
-ln -s ~/.otsumi-agentic/*               ~/.claude/
+ln -s ~/.otsumi/system.md   ~/.claude/CLAUDE.md
+ln -s ~/.otsumi/agents      ~/.claude/agents
+ln -s ~/.otsumi/skills      ~/.claude/skills
 ```
 
-#### For Copilot CLI
+**Copilot CLI** (also needs `instructions/copilot-subagent.md` for delegation)
 
 ```bash
-ln -s ~/.otsumi-agentic/persona.md      ~/.copilot/copilot-instructions.md
-ln -s ~/.otsumi-agentic/*    ~/.copilot/
+ln -s ~/.otsumi/system.md   ~/.copilot/copilot-instructions.md
+ln -s ~/.otsumi/agents      ~/.copilot/agents
+ln -s ~/.otsumi/skills      ~/.copilot/skills
+ln -s ~/.otsumi/instructions/copilot-subagent.md  ~/.copilot/copilot-subagent.md
 ```
 
-#### For OpenCode
+**OpenCode**
 
 ```bash
-ln -s ~/.otsumi-agentic/persona.md      ~/.config/opencode/AGENTS.md
-ln -s ~/.otsumi-agentic/*    ~/.config/opencode/
+ln -s ~/.otsumi/system.md   ~/.config/opencode/AGENTS.md
+ln -s ~/.otsumi/agents      ~/.config/opencode/agents
+ln -s ~/.otsumi/skills      ~/.config/opencode/skills
 ```
 
-### 3. Customization
+### 3. Run
 
-Change `persona.md` to customize the persona of your primary agent.
-Change the model in each agents to match your preferences.
+Open a project in your AI CLI. Ōshō is live. She answers to "Otsumi."
 
-If you need a different language than python you gonna need to:
-- Create the adapter skills `<my-language>-implementer`, `<my-language>-refactorer`, `<my-language>-test-generator`
-- Create the rules in `env-setup`
+For Copilot CLI specifically:
 
-### 4. Usage
-
-Open a project in your AI CLI. The pipeline is live. Otsumi answers to her name.
-for Copilot CLI:
 ```bash
 copilot --allow-all-tools
 ```
-The option `--allow-all-tools` enables Otsumi to run on any tool that reads Markdown-based agent instructions, this is NECESSARY to run the 'hidden' `tasks` tools used to delegate/spawn subagents.
-You can leverage that option, by settings all your tools including `tasks` in your agent frontmatter, but this will break direct portability to other tools.
 
-> **Key insight:** the pipeline is plain Markdown. Any tool that reads `.md` files from a config directory can run Otsumi. No runtime dependency, no SDK, no lock-in.
+The `--allow-all-tools` flag enables the `task` tool used to spawn subagents. Required for the orchestration loop. If you'd rather pin the toolset per-agent in frontmatter, you can, but you lose plug-and-play portability across tools.
 
----
-
-## Routing Model
-
-Every pipeline starts with two explicit selectors. No inference from natural language.
-
-```
---mode <mode>              assisted or vibecoding?
---lang <language_id>       what ecosystem are we in?
-```
-
-The pipeline resolves the `language_id` into a `stages` list and discovers the test framework from the project. No additional flags required.
-
-Adapter skills declare what they handle. Adding a new language means creating the adapter skills and updating the stage router. The pipeline architecture does not change.
+> **Key insight:** the entire system is plain Markdown. No SDK, no runtime, no lock-in. Claude Code runs it natively; other AI CLIs need a small adapter file from `instructions/`.
 
 ---
 
-## The Pipeline in Eight Stages
+## Customization
 
-| Stage | Name | What Happens |
-|-------|------|--------------|
-| **S1** | Gherkin Spec | Feature description becomes an approved `.feature` file. Every scenario presented for your approval, silence is not consent. |
-| **S2** | Trap Analysis | Adversarial analysis across 7 trap categories: boundary conditions, auth gaps, concurrency, state machines, data integrity, external dependencies, and missing behaviors. Every trap surfaced for your approval. |
-| **S3** | RED Tests | Real failing tests generated against implementation surfaces that do not exist yet. Confirmed RED before advancing. |
-| **S4** | Implementation | Minimal code to make the RED tests GREEN. One test at a time. Nothing more. Gold plating surfaced to you before output is finalized. |
-| **S5** | Refactor | Behavior-preserving improvements. Tests run after every atomic change. Any change that turns the suite RED is immediately undone. |
-| **S6** | Decisions | ADR/TDR evaluation against a trigger checklist. Written when triggered. Explicit `no_record_reasoning` when not. Nothing silently skipped. |
-| **S7** | Quality Scoring | 7 dimensions scored with evidence. Minimum 4/5 each. Single dimension at 3/5 blocks closure. Remediation loop with 3-cycle limit before ESCALATED. |
-| **S8** | Documentation | Human-facing docs generated from real pipeline artifacts: README sections, API reference, changelog entries, Obsidian notes. No invented behavior. |
-
----
-
-## The Agent Team
-
-Otsumi coordinates a team of specialist subagents. You never talk to them directly, everything surfaces in the Otsumi thread with full context.
-
-| Agent | Stage | Role |
-|-------|-------|------|
-| `gherkin-keeper` | S1 + S2 | Spec creation and adversarial trap analysis |
-| `bdd-test-generator` | S3 | Language-routed RED test generation |
-| `minimal-implementer` | S4 | Minimal implementation, one test at a time |
-| `safe-refactorer` | S5 | Atomic refactor with enforced GREEN gate |
-| `decision-keeper` | S6 | ADR/TDR authoring |
-| `quality-scorer` | S7 | Evidence-based 7-dimension scoring |
-| `doc-writer` | S8 | Human-facing documentation |
-
-Each agent validates upstream artifacts before executing, writes its own `stage-XX-output.json` as a handoff contract, and returns control to Otsumi. No agent invokes the next one directly.
-
-Skills sit beneath the agents, stateless, standalone-capable capability units that can also be invoked directly without a running pipeline:
-
-```
-# Trap analysis on an existing .feature file, no pipeline needed
-Ask Otsumi: run gherkin-keeper on features/my-thing.feature
-
-# Deep expert review on a feature, no pipeline needed
-Ask Otsumi: run expert-code-review for my-thing
-
-# Write docs for a closed feature
-Ask Otsumi: run doc-writer for my-feature, doc_types: [obsidian, changelog]
-```
-
----
-
-## Commands (Stateless skills invoked by users)
-
-| Command | What It Does |
-|---------|--------------|
-| `/start-pipeline --mode assisted --lang <l> <description>` | Start an assisted pipeline. You implement. |
-| `/start-pipeline --mode vibecoding --lang <l> <description>` | Start a vibecoding pipeline. Otsumi implements. |
-| `/continue <feature-name>` | Resume an assisted pipeline from its next stage. Guards against closed or running pipelines. |
-| `/env-setup --lang <l>` | Prepare the runtime environment. |
-| `/run-tests <feature-name>` | Run the test suite. |
-| `/quality-check <feature-name>` | Run the four tool-backed quality dimensions (lint, format, imports, types). |
-| `/delivery-review <feature-name>` | Run structured review across architecture, test quality, and docs. |
-| `/expert-code-review <path>` | Run a deep standalone code review with expert scorecard. |
-| `/complete-stage <feature-name> <stage-id> "<log-details>"` | Finalize a stage: update pipeline routing, log completion, handle pause/close. |
-| `/atomic-log <feature-name> <event> <summary>` | Append one event to the feature's append-only log. |
-| `/retro-prompt <feature-name>` | Analyse a closed pipeline and return a better version of the original prompt. Auto-runs at pipeline close. |
-| `/retro-prompt` | Standalone, works on any session without a running pipeline. |
-| `/retro-feature <path>` | Read existing source code, identify distinct features, and produce approved Gherkin specs ready to feed into the pipeline. Stack-agnostic, no pipeline context required. |
-| `/retro-feature <path> --tests <tests-path>` | Same as above, with supplemental test files as behavioral evidence. |
-| `/status <feature-name>` | Show detailed pipeline status for a feature. |
-| `/status` | List all pipelines found in `.otsumi/`. |
-| `/abort <feature-name>` | Gracefully abort a running or paused pipeline. Preserves all artifacts. |
-| `/backlog` | List all planned features from the Feature Backlog Protocol. |
-| `/diff-stage <feature-name> <stage-id>` | Show what changed at a specific pipeline stage. |
-| `/replay <feature-name> --from <stage-id>` | Re-run a closed or aborted pipeline from a specific stage. |
-| `/prompt-master` | Optimize any prompt for any AI tool. Surgical, credit-efficient, zero-reprompt output. Used automatically before every pipeline start. |
-| `/create-skill <feature-name>` | Distill a closed pipeline into a reusable skill: runs retro-prompt, then prompt-master, outputs a ready SKILL.md. |
-| `/create-skill <name> "<description>"` | Distill the current conversation or task into a reusable skill. |
-
----
-
-## Quality Gate
-
-A feature is **CLOSED** only when all 7 dimensions score ≥ 4/5.
-
-| Dimension | Source | What It Measures |
-|-----------|--------|------------------|
-| `linting` | `/quality-check` | Lint status |
-| `formatting` | `/quality-check` | Code formatting compliance |
-| `import_hygiene` | `/quality-check` | Import ordering and hygiene |
-| `type_safety` | `/quality-check` | Type check or equivalent |
-| `architecture` | `/delivery-review` | Structure, boundaries, naming, modeling |
-| `test_quality` | `/delivery-review` | Behavioral coverage and test reliability |
-| `docs_quality` | `/delivery-review` | Decision record completeness |
-
-One dimension at 3/5 blocks closure regardless of overall average. On failure: Otsumi routes the fix to the responsible agent, re-runs the evidence, and re-scores. Maximum 3 remediation cycles. On cycle 4: `ESCALATED`, manual intervention with explicit options.
+| What | Where | How |
+|---|---|---|
+| System context (every agent) | `system.md` | Keep lean. Loaded for every invocation. Add hard floors that apply to all roles. |
+| Ōshō voice | `skills/agent-load-persona/SKILL.md` | Rewrite to taste. Loaded by Ōshō on session start via `/agent-load-persona`, NOT by specialists. |
+| Agent role | `agents/<name>.md` | Tweak input/output contracts, drift guardrails, hard rules. |
+| Workflow stages | `skills/dev-bdd-workflow/SKILL.md` | Change the stage table, the routing skills, the remediation policy. |
+| New language | Add `dev-<lang>-test-generator`, `dev-<lang>-implementer`, `dev-<lang>-refactorer` skills. Update `dev-stage-router` routing table. Add detection rules in `dev-env-setup`. | The board doesn't change. Only adapters do. |
+| New skill | `skills/<name>/SKILL.md` | Follow the canonical layout. Or use `/agent-create-skill` to distill one from completed work. |
+| Triage tiers | `agents/osho.md` (Request Triage section) | Adjust what counts as Tier 0/1/2. Default to escalation, never downgrade on doubt. |
 
 ---
 
@@ -256,85 +202,81 @@ Every closed feature leaves a trail in `.otsumi/<feature-name>/`:
 
 ```
 pipeline.json          ← routing selectors, mode, status, timestamps
-stage-01-output.json   ← approved scenario list
+stage-01-output.json   ← approved scenarios
 stage-02-output.json   ← trap analysis summary
-stage-03-output.json   ← test generation summary, RED confirmation
-stage-04-output.json   ← implementation summary, test infrastructure changes
+stage-03-output.json   ← RED test confirmation
+stage-04-output.json   ← implementation summary
 stage-05-output.json   ← refactor summary
-stage-06-output.json   ← ADR/TDR decisions or explicit no-record reasoning
-stage-07-output.json   ← scorecard, dimension scores, remediation history
+stage-06-output.json   ← decisions or explicit no-record reasoning
+stage-07-output.json   ← scorecard, dimensions, remediation history
 stage-08-output.json   ← documentation written
-atomic-log.json        ← append-only event log: every action, timestamped
+events.json            ← append-only event log: every action, timestamped
 ```
 
-And in the project:
+And in the project itself:
 
 ```
-features/<feature-name>.feature     ← the approved spec
-tests/                              ← the test suite
-src/                                ← the implementation
-docs/decisions/                     ← ADR + TDR records
+features/<feature-name>.feature   ← the approved spec
+tests/                            ← the test suite
+src/                              ← the implementation
+docs/decisions/                   ← ADR + TDR records
 ```
 
 Nothing is invented. Every artifact is earned.
 
 ---
 
-## Design
+## The Prompt Triad
 
-**Skills are weapons. Agents are trigger fingers. Otsumi is the fire control system.**
+Three skills that chain into a learning loop:
 
-The three-layer design keeps the system extensible without breaking what's already working:
-
-- **Skills** do one thing well and have no pipeline awareness. They can run standalone.
-- **Agents** own the gates: validate state, resolve inputs, invoke the skill, write the handoff JSON, log the event, return to Otsumi.
-- **Otsumi** owns the flow: initialize, route, remediate, close. She is also the front gate for *any* user request, not just pipelines.
-
-### The Front Gate Architecture
-
-Otsumi is a jack-of-all-trades primary agent. She handles any inquiry directly — code, writing, research, analysis, prompt engineering. When the request involves a BDD pipeline, she loads the `bdd-orchestrator` skill, which gives her the pipeline orchestration brain. She then spawns stage subagents directly and drives the workflow.
-
-This means there is no separate orchestrator agent. The orchestration logic lives as a skill that Otsumi loads on demand. Why? Because subagents cannot spawn other subagents — if the orchestrator were a subagent, it could not delegate to gherkin-keeper, minimal-implementer, etc. Making it a skill solves this: the logic runs inside Otsumi's context, and Otsumi retains her ability to spawn subagents.
-
-### The Prompt Triad: retro-prompt, prompt-master, create-skill
-
-Three skills, each with a clean single responsibility, that chain into a learning loop.
-
-**`/retro-prompt`** is the **observer**. It looks backward at what actually happened — which traps were missed, which constraints caused rework, which assumptions turned out wrong — and extracts grounded lessons. No hypothetical advice, only friction that was paid for in real rework. Its output is plain natural language, tool-agnostic. That's its power and its limit: it produces insight, not automation.
-
-**`/prompt-master`** is the **weaponizer**. It takes any rough idea and forges it into a production-ready prompt optimized for a specific tool. It doesn't care where the input comes from — a user typing, a retro-prompt output, a napkin sketch. It handles any AI tool: Claude, ChatGPT, Gemini, Cursor, Copilot, Midjourney, DALL-E, Stable Diffusion, ComfyUI, Sora, ElevenLabs, Zapier, and more. Its job is format, structure, and precision.
-
-**`/create-skill`** is the **crystallizer**. It chains the two in sequence — observer feeds weaponizer — and adds a third step: reshaping the output into a durable `SKILL.md` artifact. Without it, you'd manually run retro-prompt, copy the output, run prompt-master, then format the result as a skill file. `create-skill` makes that pipeline atomic.
+- **`/agent-retro-prompt`** is the **observer**. It looks at what actually happened and extracts grounded friction. No hypothetical advice, only friction paid for in real rework.
+- **`/agent-prompt-master`** is the **weaponizer**. It forges a rough idea into a production-ready prompt for any target tool: Claude, GPT, Gemini, Cursor, Copilot, Midjourney, Sora, ElevenLabs, the lot.
+- **`/agent-create-skill`** is the **crystallizer**. It chains the two and reshapes the output into a durable `SKILL.md`.
 
 ```
-retro-prompt  →  plain natural language + friction points + scores
+retro-prompt   →  plain language friction + improved prompt
      ↓
-prompt-master →  production-ready prompt for target tool
+prompt-master  →  production-ready prompt for the target tool
      ↓
-create-skill  →  SKILL.md file with Usage, Steps, Hard Rules
+create-skill   →  SKILL.md with usage, hard rules, steps
 ```
 
-No skill knows about the others' internals. `retro-prompt` doesn't know it's feeding `prompt-master`. `prompt-master` doesn't know its input came from a retrospective. `create-skill` is just the orchestration that chains them and adds the file-writing ceremony.
+The friction is paid once. The learning is permanent. Knowledge that would die with the conversation gets crystallized into reusable automation.
 
-The result: knowledge that would die with the conversation gets crystallized into reusable automation. The friction was paid once. The learning is permanent.
+---
 
-```
-# After closing the invoice-pdf-export pipeline:
-/create-skill invoice-pdf-export
+## Why This Exists
 
-→ Phase 1: retro-prompt analyses the pipeline, finds 3 friction points
-  (timezone-naive date filtering, silent unicode drops, missing locale)
-→ Phase 2: prompt-master converts the improved prompt into a SKILL.md
-→ Phase 3: you review and approve
+Most AI coding tools solve the wrong problem. They make *writing* code faster. They do nothing for the discipline around it.
 
-→ skills/pdf-export/SKILL.md is written
-→ /pdf-export is now a command
-→ Next PDF export starts with those 3 traps pre-embedded as constraints
-```
+Where is the spec, and where are the test scenarios? Who decided on this architecture and why? What did the quality check actually find?
 
-### Extensibility
+Otsumi answers those questions by making them unavoidable. Every feature delivered through the BDD workflow leaves behind:
 
-Adding a new language means creating the adapter skills and updating the stage router. The pipeline architecture does not change.
+- a Gherkin spec that survives the next sprint
+- adversarial traps caught before they cost anything
+- RED tests proving the bug existed
+- minimal implementation that GREEN-fixed it
+- ADR/TDR records of every load-bearing decision
+- evidence-backed quality scores with blocking thresholds
+- human-facing docs generated from artifacts, not summaries
+
+You choose what you own. You choose what the workflow owns. The workflow never pretends a stage was completed when it wasn't.
+
+---
+
+## Design Principles
+
+**Roles do not blur.** Ōshō is the only mouth, Kakugyō plans but never executes, specialists own one concern. The architecture refuses scope creep at the agent level.
+
+**Drift guardrails are explicit.** Every agent file lists what to do when it starts behaving like a different agent: route the work to the agent that actually owns that concern.
+
+**No hidden state.** Every stage writes a JSON artifact, every event appends to an immutable log. Recovery, replay, and audit are first-class.
+
+**Plain Markdown over framework.** A multi-agent system shouldn't require an SDK. It should require a directory of `.md` files and an AI CLI that can read them.
+
+**Skills are weapons. Agents are trigger fingers. Ōshō is fire control.**
 
 ---
 

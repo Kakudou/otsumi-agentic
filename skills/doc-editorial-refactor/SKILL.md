@@ -5,16 +5,12 @@ description: "Rewrite Markdown with sharp editorial voice, TL;DR, clean typograp
 
 # Doc Editorial Refactor
 
-Rewrite Markdown without breaking technical content.
+Refactor technically correct Markdown that reads like committee sludge into sharp, direct editorial prose, without breaking technical content.
 
 ## Usage
 
 - `/doc-editorial-refactor <file>`
 - `/doc-editorial-refactor <file> --output <target>`
-
-## Purpose
-
-Refactor technically correct Markdown that reads like committee sludge into sharp, direct editorial prose.
 
 ## Hard Rules
 
@@ -24,8 +20,8 @@ Refactor technically correct Markdown that reads like committee sludge into shar
 - NEVER produce one-sentence-per-blank-line paragraphs.
 - NEVER exceed three sentences on one prose line.
 - NEVER soften a verdict to sound polite.
-- ALWAYS insert TL;DR immediately after the title.
-- ALWAYS verify zero em dashes before reporting done.
+- MUST insert TL;DR immediately after the title.
+- MUST verify zero em dashes before reporting done.
 - If `--output` is specified, NEVER edit the source file.
 
 ## Steps
@@ -47,8 +43,8 @@ Refactor technically correct Markdown that reads like committee sludge into shar
    - call out problems directly
    - use short punchy closers when useful
 5. Typography:
-   - replace every em dash with `:`, `;`, `,`, or parentheses according to context
-   - target about 110 characters max per prose line
+   - replace every em dash with `:`, `;`, `,`, or parentheses per context
+   - target ~110 characters max per prose line
 6. Verify:
    - search for `—` returns zero
    - TL;DR is immediately after title

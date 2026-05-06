@@ -12,34 +12,26 @@ Create production-grade Excalidraw output with a cyberpunk-terminal design syste
 - `/doc-stylish-excalidraw <content>`
 - `/doc-stylish-excalidraw <file-or-notes> --output <name>.excalidraw`
 
-## Mandatory Prerequisites
-
-1. Invoke `/design-frontend` principles first for creative rigor and anti-slop design thinking.
-2. Read `references/excalidraw-render.md` before generating JSON.
-
-## Purpose
-
-Convert content into either:
-
-1. **DIAGRAM mode**: wired nodes with bound arrows.
-2. **DOCUMENT LAYOUT mode**: styled spatial cards without forced arrows.
-
 ## Hard Rules
 
 - DEFAULT to document layout mode unless arrows genuinely add meaning.
 - NEVER over-diagram lists, rubrics, notes, guides, or reference sheets.
 - NEVER embed Mermaid syntax in Excalidraw.
-- EVERY diagram arrow must be bound bidirectionally.
-- ALWAYS run validation/autosizing before output.
-- Output one `.excalidraw` JSON file.
+- EVERY diagram arrow MUST be bound bidirectionally.
+- MUST run validation/autosizing before output.
+- MUST output one `.excalidraw` JSON file.
 
-## Classification
+## Mandatory Prerequisites
 
-Use **DIAGRAM** mode for architecture, C2/C4, flowcharts, decision trees, data flows, state machines, process flows, pipelines, and lifecycle diagrams.
+1. Apply `/design-frontend` principles first for creative rigor and anti-slop design thinking.
+2. Read `references/excalidraw-render.md` before generating JSON.
 
-Use **DOCUMENT LAYOUT** mode for guides, checklists, scoring rubrics, interview cards, reference sheets, cheat sheets, red flags, evaluation criteria, and tables.
+## Mode Classification
 
-Test: if arrows add causal/flow meaning, diagram. If arrows add noise, layout.
+- **DIAGRAM mode** — wired nodes with bound arrows. Use for architecture, C2/C4, flowcharts, decision trees, data flows, state machines, process flows, pipelines, lifecycle diagrams.
+- **DOCUMENT LAYOUT mode** — styled spatial cards without forced arrows. Use for guides, checklists, scoring rubrics, interview cards, reference sheets, cheat sheets, red flags, evaluation criteria, tables.
+
+Test: if arrows add causal/flow meaning → diagram. If arrows add noise → layout.
 
 ## Workflow
 
