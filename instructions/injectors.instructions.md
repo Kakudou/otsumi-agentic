@@ -1,1 +1,0 @@
-<!-- Placeholder: OpenCTI injector connector instructions. To be populated. -->

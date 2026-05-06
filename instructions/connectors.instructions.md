@@ -1,1 +1,0 @@
-<!-- Placeholder: OpenCTI general connector instructions. To be populated. -->

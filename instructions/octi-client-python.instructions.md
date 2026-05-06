@@ -1,1 +1,0 @@
-<!-- Placeholder: OpenCTI Python client (pycti) instructions. To be populated. -->
