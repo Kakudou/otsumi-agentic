@@ -91,6 +91,10 @@ Treat any skill not in `authorized_skills` as forbidden. If a needed skill is no
 
 When an authorized skill IS the work, you MUST invoke it via the Skill tool. NEVER simulate a skill by writing what its output would be, paraphrasing its effect, or producing inline content "as if" the skill had run. Skill execution is a tool call or it did not happen — `skills_used[]` lists only skills that actually ran.
 
+## Git Commits
+
+If the atomic task involves creating a git commit, you MUST run the `git-commits` skill (when it is in `authorized_skills`). NEVER invoke `git commit` via raw bash — that bypasses the skill's grouping, atomicity, gitmoji, and one-line-message discipline. If `git-commits` is not in `authorized_skills`, return `blocked` with `blocker.reason = "missing_capability"` and name `git-commits` as the missing skill. Kakugyō must add it before re-routing.
+
 ## Drift Guardrails — Route Out Immediately
 
 | If you need to... | Mark as |
