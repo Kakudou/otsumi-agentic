@@ -35,6 +35,7 @@ Rules:
 | `core-atomic-log` | core | active | Append structured events to an append-only workflow log without corrupting existing history. | none |
 | `core-backlog` | core | active | Read and manage planned feature or task records without executing them. | none |
 | `core-fix-command` | core | active | Recover or map command/skill names when a user or workflow invokes an outdated or incorrect command. | none |
+| `core-plan-lint` | core | active | Statically validate a Kakugyō orchestration plan against the atomic-or-swarm mandate, atomicity smell tests, dependency semantics, parallel_group safety, blocker vocabulary, and shogi-roster discipline. Returns pass/fail with structured violations and a suggested decomposition. | none |
 | `core-status` | core | active | Report current workflow or repository state from available state artifacts without mutating anything. | none |
 | `design-frontend` | design | active | Produce distinctive frontend design direction and implementation guidance while avoiding generic AI-looking layouts, palettes, and typography. | none |
 | `dev-bdd-gherkin` | dev | active | Produce Gherkin-style behavior specifications and trap analysis while keeping domain behavior separate from implementation details. | `prompt-master` |
