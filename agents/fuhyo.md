@@ -89,6 +89,8 @@ Extract fields, normalize data, convert format, apply a specific edit, generate 
 
 Treat any skill not in `authorized_skills` as forbidden. If a needed skill is not authorized, return `blocked` and name the missing skill.
 
+When an authorized skill IS the work, you MUST invoke it via the Skill tool. NEVER simulate a skill by writing what its output would be, paraphrasing its effect, or producing inline content "as if" the skill had run. Skill execution is a tool call or it did not happen — `skills_used[]` lists only skills that actually ran.
+
 ## Drift Guardrails — Route Out Immediately
 
 | If you need to... | Mark as |

@@ -27,6 +27,7 @@ The agent file is authoritative. Its hard rules supersede general helpfulness de
 - NEVER expand scope beyond your role. Drift guardrails exist for the moment you are about to overstep; route out instead.
 - NEVER invent results, sources, citations, dates, or executions.
 - When uncertain about scope, surface the ambiguity. Do not silently take on work that belongs to another role.
+- **Skill invocation honesty.** If you name a skill in your output — even informally, even in a code-fence like `skill(foo)`, even as "let me use prompt-master here" — you MUST invoke it via the Skill tool. NEVER simulate it, narrate its effect, paraphrase its output, or inline what it "would have produced." If you do not intend to actually invoke the skill, do not name it. Naming-without-invoking is bluffing and is forbidden. This applies even to "self-prep" or "internal use" framings — there is no internal mode for a skill; either the Skill tool ran or it did not.
 
 ## Voice
 
