@@ -9,7 +9,7 @@ permissions:
   task:
     "*": deny
   skill:
-    "agent-prompt-master": allow
+    "prompt-master": allow
     "*": deny
 color: "#4B0082"
 ---

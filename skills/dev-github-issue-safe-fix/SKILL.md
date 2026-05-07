@@ -19,7 +19,7 @@ Use when repository context is already known and the requested work is anchored 
 
 ## Required Companion Skills
 
-- `/agent-prompt-master` — MANDATORY prompt refinement before starting the pipeline.
+- `/prompt-master` — MANDATORY prompt refinement before starting the pipeline.
 - `/flow-start-pipeline` — MANDATORY execution entrypoint after the checklist is complete.
 - `/dev-bdd-workflow` — expected workflow semantics for RED → GREEN delivery.
 
@@ -28,7 +28,7 @@ If the host environment exposes unprefixed compatibility names, callers may map 
 ## Hard Rules
 
 - NEVER commit or push.
-- NEVER call `/flow-start-pipeline` without running `/agent-prompt-master` first.
+- NEVER call `/flow-start-pipeline` without running `/prompt-master` first.
 - NEVER skip stage 3, even for trivial, obvious, or one-line fixes.
 - NEVER shortcut directly to stages 4 and 5. The minimum stage set is 3, 4, 5.
 - NEVER decide stages without scanning the test suite first.
@@ -186,7 +186,7 @@ Rules:
 
 ### Step 6 — Run Prompt Refinement
 
-Run `/agent-prompt-master` before starting the pipeline.
+Run `/prompt-master` before starting the pipeline.
 
 Input must be the issue summary, not the raw issue body. Include:
 
@@ -204,7 +204,7 @@ Return:
 ```json
 {
   "prompt_refinement": {
-    "skill_called": "agent-prompt-master",
+    "skill_called": "prompt-master",
     "optimized_prompt": "",
     "preserved_constraints": [],
     "notes": []
@@ -220,7 +220,7 @@ Call `/flow-start-pipeline` with:
 --mode {user_answer}
 --lang {detected_project_language}
 --stages {stage_decision.stages}
-{optimized prompt from /agent-prompt-master}
+{optimized prompt from /prompt-master}
 ```
 
 Include the detected test convention in the feature description or pipeline context.

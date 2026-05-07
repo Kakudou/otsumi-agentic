@@ -5,7 +5,7 @@
 - Multi-agent harness for Markdown-driven AI CLIs. Native on Claude Code; small adapter shim for Copilot CLI and OpenCode. No SDK, no runtime, no lock-in.
 - Architecture is shogi: eight role-bound agents, the King talks to you, the Bishop plans, six specialists execute.
 - Each specialist owns exactly one concern: requirements, validation, writing, evidence, atomic execution, challenge.
-- 34 stateless skills, domain-prefixed (`agent-`, `core-`, `flow-`, `dev-`, `dev-python-`, `design-`, `doc-`, `git-`); invocable standalone or chained inside a workflow.
+- 38 stateless skills, domain-prefixed (`agent-`, `core-`, `flow-`, `dev-`, `dev-python-`, `design-`, `doc-`, `git-`, `kb-`); invocable standalone or chained inside a workflow.
 - BDD delivery workflow loads on demand. Assisted mode hands off implementation; vibecoding mode automates everything except approval gates.
 - Every closed feature leaves Gherkin specs, RED tests, ADRs, scorecards, and append-only event logs in `.otsumi/{feature-name}/`.
 - Drift guardrails baked into every agent file. When behavior leaves scope, it routes out instead of bleeding.
@@ -51,7 +51,7 @@ Eight shogi pieces. Each is an agent file in `agents/`. Each owns one role and r
 The traffic always flows the same way:
 
 ```
-user → Ōshō → agent-prompt-master refinement → Kakugyō plan → Ōshō invokes specialists → Ōshō synthesizes → user
+user → Ōshō → prompt-master refinement → Kakugyō plan → Ōshō invokes specialists → Ōshō synthesizes → user
 ```
 
 Every actionable request goes through Kakugyō first. No specialist talks to the user. No specialist invokes another specialist. The board stays clean.
@@ -72,6 +72,7 @@ Skills are stateless capability units invoked as `/skill-name`. They live in `sk
 | `design-` | Visual/frontend design direction |
 | `doc-` | Documentation, editorial refactor, decision records, Excalidraw |
 | `git-` | Local git hygiene |
+| `kb-` | Knowledge base / second-brain: vault capture, zettelization, assembly, graph config |
 
 Full index: [`skills/REGISTRY.md`](skills/REGISTRY.md).
 
@@ -231,7 +232,7 @@ Nothing is invented. Every artifact is earned.
 Three skills that chain into a learning loop:
 
 - **`/agent-retro-prompt`** is the **observer**. It looks at what actually happened and extracts grounded friction. No hypothetical advice, only friction paid for in real rework.
-- **`/agent-prompt-master`** is the **weaponizer**. It forges a rough idea into a production-ready prompt for any target tool: Claude, GPT, Gemini, Cursor, Copilot, Midjourney, Sora, ElevenLabs, the lot.
+- **`/prompt-master`** is the **weaponizer**. It forges a rough idea into a production-ready prompt for any target tool: Claude, GPT, Gemini, Cursor, Copilot, Midjourney, Sora, ElevenLabs, the lot.
 - **`/agent-create-skill`** is the **crystallizer**. It chains the two and reshapes the output into a durable `SKILL.md`.
 
 ```
@@ -243,6 +244,29 @@ create-skill   →  SKILL.md with usage, hard rules, steps
 ```
 
 The friction is paid once. The learning is permanent. Knowledge that would die with the conversation gets crystallized into reusable automation.
+
+---
+
+## The Knowledge Metabolism
+
+Four skills that chain into a second brain:
+
+- **`/kb-obsidian-remember`** is the **intake**. Raw capture, byte-for-byte, no opinion. Drops anything into the raw inbox with an epoch filename and gets out of the way.
+- **`/kb-obsidian-zettelize`** is the **atomizer**. Decomposes any source into atomic Zettelkasten notes — one idea per file. Deduplicates against what already exists; updates instead of duplicating.
+- **`/kb-obsidian-assemble`** is the **curator**. Synthesizes existing zettels into a topical resource by linking and embedding. Librarian, not writer — surfaces gaps instead of filling them.
+- **`/kb-obsidian-config`** is the **lens**. Configures the graph view — colors, forces, search — so you can see what the other three built.
+
+```
+remember    →  raw content in the inbox, untouched
+    ↓
+zettelize   →  atomic notes, deduplicated, linked
+    ↓
+assemble    →  topical resource, synthesized from zettels
+    ↓
+config      →  graph view tuned to surface the structure
+```
+
+The intake is cheap. The knowledge compounds.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: agent-create-skill
-description: "Create a reusable SKILL.md from completed work by mandatory chaining agent-retro-prompt then agent-prompt-master."
+description: "Create a reusable SKILL.md from completed work by mandatory chaining agent-retro-prompt then prompt-master."
 ---
 
 # Agent Create Skill
@@ -44,7 +44,7 @@ Turn completed work into a reusable skill file by chaining retro-prompt then pro
    - `skill_name`: kebab-case, domain-prefixed when appropriate
    - `skill_description`: one-line trigger/purpose
    - `target_tool`: default to host skill format unless user specifies another
-5. Invoke `/agent-prompt-master` with:
+5. Invoke `/prompt-master` with:
    - the improved prompt from Phase 1
    - friction points converted into constraints
    - coaching notes converted into hard rules or validation steps
