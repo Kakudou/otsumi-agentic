@@ -9,7 +9,7 @@ Initialize one or more pipelines with explicit routing selectors. Create state f
 
 ## Usage
 
-`/flow-start-pipeline --mode <assisted|vibecoding> --lang <language_id> [--stages 1,2,3] [--pytest] [--requirements-contract <json|path>] <description>`
+`/flow-start-pipeline --mode {assisted|vibecoding} --lang {language_id} [--stages 1,2,3] [--pytest] [--requirements-contract {json|path}] {description}`
 
 Shorthand aliases that may map to this skill:
 
@@ -34,8 +34,8 @@ The `--requirements-contract` flag carries Kinshō's PO contract (acceptance cri
 3. Identify distinct features in the request. Ask for clarification if the split affects safety.
 4. For each feature:
    - derive a non-generic kebab-case feature name
-   - create `.otsumi/<feature-name>/`
-   - refuse if `.otsumi/<feature-name>/pipeline.json` already exists
+   - create `.otsumi/{feature-name}/`
+   - refuse if `.otsumi/{feature-name}/pipeline.json` already exists
    - validate that required adapter skills exist for requested active stages
 5. Resolve active stages:
    - full delivery: `stage-01` through `stage-08`
@@ -44,7 +44,7 @@ The `--requirements-contract` flag carries Kinshō's PO contract (acceptance cri
 6. Resolve `test_style`:
    - `--pytest` → `pytest`
    - omitted → `auto`
-7. Write `.otsumi/<feature-name>/pipeline.json`:
+7. Write `.otsumi/{feature-name}/pipeline.json`:
 
 ```json
 {
@@ -66,7 +66,7 @@ The `--requirements-contract` flag carries Kinshō's PO contract (acceptance cri
 ```
 
 8. If `--requirements-contract` is provided:
-   - persist the contract content to `.otsumi/<feature-name>/kinsho-contract.json`
+   - persist the contract content to `.otsumi/{feature-name}/kinsho-contract.json`
    - set `requirements_contract_path` in `pipeline.json` to that path
    - stage adapters (especially `dev-bdd-gherkin`) MUST read this file when present
 9. Log `pipeline.started`.

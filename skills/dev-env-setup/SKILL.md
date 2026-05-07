@@ -9,7 +9,7 @@ Verify runtime readiness before any implementation, tests, linting, formatting, 
 
 ## Usage
 
-`/dev-env-setup --lang <language_id> [--feature <feature-name>]`
+`/dev-env-setup --lang {language_id} [--feature {feature-name}]`
 
 ## Hard Rules
 

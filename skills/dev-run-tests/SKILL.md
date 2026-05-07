@@ -9,8 +9,8 @@ Provide reliable test evidence for RED/GREEN workflow gates.
 
 ## Usage
 
-- `/dev-run-tests <feature-name>`
-- `/dev-run-tests --target <path-or-selector>`
+- `/dev-run-tests {feature-name}`
+- `/dev-run-tests --target {path-or-selector}`
 
 ## Hard Rules
 

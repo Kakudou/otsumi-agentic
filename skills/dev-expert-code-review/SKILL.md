@@ -9,7 +9,7 @@ Find subtle problems beyond mechanical quality checks.
 
 ## Usage
 
-`/dev-expert-code-review <feature-name>`
+`/dev-expert-code-review {feature-name}`
 
 ## Hard Rules
 

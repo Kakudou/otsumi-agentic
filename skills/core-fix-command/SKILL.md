@@ -9,7 +9,7 @@ Recover from a mistyped, moved, or renamed command — return a correction witho
 
 ## Usage
 
-`/core-fix-command <failed-command>`
+`/core-fix-command {failed-command}`
 
 ## Hard Rules
 

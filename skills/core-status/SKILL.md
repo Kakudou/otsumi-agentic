@@ -10,7 +10,7 @@ Read-only view of workflow or pipeline status from persisted state.
 ## Usage
 
 - `/core-status`
-- `/core-status <scope-name>`
+- `/core-status {scope-name}`
 
 ## Hard Rules
 
@@ -21,7 +21,7 @@ Read-only view of workflow or pipeline status from persisted state.
 
 ## Steps
 
-1. If `<scope-name>` is provided, read `.otsumi/<scope-name>/pipeline.json` or equivalent state root.
+1. If `{scope-name}` is provided, read `.otsumi/{scope-name}/pipeline.json` or equivalent state root.
 2. If no scope is provided, list `.otsumi/*/pipeline.json`.
 3. For each state root, report:
    - name

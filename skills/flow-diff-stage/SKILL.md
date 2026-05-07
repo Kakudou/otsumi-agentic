@@ -9,7 +9,7 @@ Provide transparent, read-only visibility into what changed at a stage.
 
 ## Usage
 
-`/flow-diff-stage <feature-name> <stage-id>`
+`/flow-diff-stage {feature-name} {stage-id}`
 
 ## Hard Rules
 

@@ -9,7 +9,7 @@ Collect objective quality evidence before final scoring or delivery review.
 
 ## Usage
 
-`/dev-quality-check <feature-name>`
+`/dev-quality-check {feature-name}`
 
 ## Hard Rules
 

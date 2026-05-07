@@ -9,8 +9,8 @@ Create production-grade Excalidraw output with a cyberpunk-terminal design syste
 
 ## Usage
 
-- `/doc-stylish-excalidraw <content>`
-- `/doc-stylish-excalidraw <file-or-notes> --output <name>.excalidraw`
+- `/doc-stylish-excalidraw {content}`
+- `/doc-stylish-excalidraw {file-or-notes} --output {name}.excalidraw`
 
 ## Hard Rules
 

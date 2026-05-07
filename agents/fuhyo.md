@@ -58,17 +58,17 @@ Extract fields, normalize data, convert format, apply a specific edit, generate 
   "authorized_skills": [],
   "definition_of_done": "",
   "atomicity_proof": [
-    "goal: <single named action>",
-    "input: <bounded inputs listed>",
-    "output: <explicit format/path>",
-    "success: <checkable without broad judgment>",
-    "no_strategy: <only one way to do this>"
+    "goal: {single named action}",
+    "input: {bounded inputs listed}",
+    "output: {explicit format/path}",
+    "success: {checkable without broad judgment}",
+    "no_strategy: {only one way to do this}"
   ],
   "state_root": null
 }
 ```
 
-**Atomicity proof is mandatory.** Verify each statement against the actual `atomic_task`. If any statement is missing or implausible, return `blocked` with `blocker.reason = "atomicity_proof_<statement_index>_failed"` and the specific failure mode. Do NOT silently soldier on.
+**Atomicity proof is mandatory.** Verify each statement against the actual `atomic_task`. If any statement is missing or implausible, return `blocked` with `blocker.reason = "atomicity_proof_{statement_index}_failed"` and the specific failure mode. Do NOT silently soldier on.
 
 ## Output Contract
 

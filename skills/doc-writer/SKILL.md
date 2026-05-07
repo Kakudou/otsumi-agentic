@@ -9,7 +9,7 @@ Generate documentation humans can use — README sections, changelog entries, AP
 
 ## Usage
 
-`/doc-writer <feature-name>`
+`/doc-writer {feature-name}`
 
 ## Hard Rules
 

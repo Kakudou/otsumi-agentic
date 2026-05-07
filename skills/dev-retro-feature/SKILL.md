@@ -9,7 +9,7 @@ Recover feature specs from existing implementation — read-only.
 
 ## Usage
 
-`/dev-retro-feature <path-or-feature-area>`
+`/dev-retro-feature {path-or-feature-area}`
 
 ## Hard Rules
 

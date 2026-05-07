@@ -9,7 +9,7 @@ Generate Python tests that start RED, from approved behavior, before implementat
 
 ## Usage
 
-`/dev-python-test-generator <payload>`
+`/dev-python-test-generator {payload}`
 
 ## Hard Rules
 

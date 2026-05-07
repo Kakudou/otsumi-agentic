@@ -12,7 +12,7 @@ This skill is pre-pipeline. It gathers issue context, verifies current source, s
 ## Usage
 
 ```text
-/dev-github-issue-safe-fix <issue-id>
+/dev-github-issue-safe-fix {issue-id}
 ```
 
 Use when repository context is already known and the requested work is anchored to a GitHub issue ID.
@@ -217,10 +217,10 @@ Return:
 Call `/flow-start-pipeline` with:
 
 ```text
---mode <user_answer>
---lang <detected_project_language>
---stages <stage_decision.stages>
-<optimized prompt from /agent-prompt-master>
+--mode {user_answer}
+--lang {detected_project_language}
+--stages {stage_decision.stages}
+{optimized prompt from /agent-prompt-master}
 ```
 
 Include the detected test convention in the feature description or pipeline context.
@@ -233,9 +233,9 @@ When the existing test suite uses `_given_*`, `_when_*`, and `_then_*` helper fu
 
 Required conventions:
 
-- One `_given_<scenario>()` function per setup path.
-- One `_when_<action>()` function per action under test.
-- One or more `_then_<assertion>()` functions per expected outcome.
+- One `_given_{scenario}()` function per setup path.
+- One `_when_{action}()` function per action under test.
+- One or more `_then_{assertion}()` functions per expected outcome.
 - Preserve existing marker conventions such as `@pytest.mark.order(1)` when present.
 - Use existing factory libraries such as `polyfactory` or `factory_boy` when present.
 - Preserve existing assertion conventions such as `# noqa: S101` when present.

@@ -202,7 +202,7 @@ Maintain this blueprint throughout the wizard:
 After final confirmation, generate this structure:
 
 ```text
-external-import/<connector-slug>/
+external-import/{connector-slug}/
 ├── .dockerignore
 ├── .env.sample
 ├── Dockerfile
@@ -214,7 +214,7 @@ external-import/<connector-slug>/
 ├── src/
 │   ├── main.py
 │   ├── requirements.txt
-│   └── <package_name>/
+│   └── {package_name}/
 │       ├── __init__.py
 │       ├── connector.py
 │       ├── converter_to_stix.py
@@ -223,16 +223,16 @@ external-import/<connector-slug>/
 │       ├── state_manager.py
 │       ├── models/
 │       │   ├── __init__.py
-│       │   └── <response_model>.py
+│       │   └── {response_model}.py
 │       ├── mappers/
 │       │   ├── __init__.py
 │       │   ├── _utils.py
-│       │   └── <entity>_mapper.py
+│       │   └── {entity}_mapper.py
 │       └── utils/
 │           ├── __init__.py
 │           ├── timestamps.py
 │           └── api_engine/
-│               ├── <api_engine package files>
+│               ├── {api_engine package files}
 │               └── README.md
 └── tests/
     ├── __init__.py
@@ -247,9 +247,9 @@ external-import/<connector-slug>/
     ├── tests_converter_stix/
     │   ├── test_converter.py
     │   └── mappers/
-    │       └── test_<entity>_mapper.py
+    │       └── test_{entity}_mapper.py
     └── tests_utils/
-        └── <api_engine tests>
+        └── {api_engine tests}
 ```
 
 ## File Generation Rules
@@ -257,19 +257,19 @@ external-import/<connector-slug>/
 ### `main.py`
 
 ```python
-"""Entrypoint for the <Connector Name> external-import connector."""
+"""Entrypoint for the {Connector Name} external-import connector."""
 
 import traceback
 
 from pycti import OpenCTIConnectorHelper
 
-from <package_name> import ConnectorSettings, <ConnectorClass>
+from {package_name} import ConnectorSettings, {ConnectorClass}
 
 if __name__ == "__main__":
     try:
         settings = ConnectorSettings()
         helper = OpenCTIConnectorHelper(config=settings.to_helper_config())
-        connector = <ConnectorClass>(config=settings, helper=helper)
+        connector = {ConnectorClass}(config=settings, helper=helper)
         connector.run()
     except Exception:
         traceback.print_exc()
@@ -280,7 +280,7 @@ if __name__ == "__main__":
 
 - Inherit `BaseConnectorSettings` from `connectors_sdk`.
 - Override `BaseExternalImportConnectorConfig` for connector-level config such as name and duration period.
-- Create a custom `<Name>Config(BaseConfigModel)` for API URL, credentials, pagination, and connector-specific settings.
+- Create a custom `{Name}Config(BaseConfigModel)` for API URL, credentials, pagination, and connector-specific settings.
 - Use `pydantic.Field` with descriptions and defaults.
 
 ### `state_manager.py`
@@ -316,13 +316,13 @@ Required behavior:
 ### `converter_to_stix.py`
 
 - Create `OrganizationAuthor` and `TLPMarking` in `__init__`.
-- Provide `convert_<entity>()` methods that call individual mappers.
+- Provide `convert_{entity}()` methods that call individual mappers.
 - Return a flat list of STIX objects.
 
 ### `mappers/`
 
 - One file per STIX entity type.
-- Pure mapping functions shaped like `map_<entity>(data, *, author, tlp_marking) -> <SDKModel>`.
+- Pure mapping functions shaped like `map_{entity}(data, *, author, tlp_marking) -> {SDKModel}`.
 - Use `_utils.py` for shared extraction helpers.
 
 ### `models/`
@@ -365,7 +365,7 @@ Include all interfaces, exceptions, implementations, tests, and README from the 
 ### Raw Pytest BDD Pattern
 
 ```python
-"""Unit tests for <Module> using _given_/_when_/_then_ BDD helpers."""
+"""Unit tests for {Module} using _given_/_when_/_then_ BDD helpers."""
 
 from unittest.mock import MagicMock
 
@@ -374,35 +374,35 @@ from unittest.mock import MagicMock
 # ===========================================================================
 
 
-def _given_<setup>(args) -> <Type>:
+def _given_{setup}(args) -> {Type}:
     """Set up precondition."""
     ...
 
 
-def _when_<action>(subject, args) -> <Result>:
+def _when_{action}(subject, args) -> {Result}:
     """Execute the action under test."""
     ...
 
 
-def _then_<assertion>(result, expected) -> None:
+def _then_{assertion}(result, expected) -> None:
     """Assert the expected outcome."""
     assert result == expected
 
 # ===========================================================================
-# Test: <Scenario Name>
+# Test: {Scenario Name}
 # ===========================================================================
 
 
-def test_<scenario_snake_case>() -> None:
-    """<One-line description of the scenario>."""
-    # _given_ <precondition>
-    thing = _given_<setup>(...)
+def test_{scenario_snake_case}() -> None:
+    """{One-line description of the scenario}."""
+    # _given_ {precondition}
+    thing = _given_{setup}(...)
 
-    # _when_ <action>
-    result = _when_<action>(thing, ...)
+    # _when_ {action}
+    result = _when_{action}(thing, ...)
 
-    # _then_ <expected outcome>
-    _then_<assertion>(result, expected_value)
+    # _then_ {expected outcome}
+    _then_{assertion}(result, expected_value)
 ```
 
 ## Infrastructure File Rules
@@ -448,7 +448,7 @@ Exclude:
 ### `entrypoint.sh`
 
 ```sh
-cd /opt/opencti-connector-<slug> && python3 main.py
+cd /opt/opencti-connector-{slug} && python3 main.py
 ```
 
 ### `README.md`
@@ -517,7 +517,7 @@ Return:
 
 ```json
 {
-  "generated_project_path": "external-import/<connector-slug>",
+  "generated_project_path": "external-import/{connector-slug}",
   "files_written": [],
   "tests": {
     "command": "",
@@ -548,14 +548,14 @@ If the user says yes:
 Suggested commit sequence:
 
 ```text
-🎉 feat(project): scaffold <connector-name> connector structure
+🎉 feat(project): scaffold {connector-name} connector structure
 📦 chore(project): add tooling and dependency manifests
 ✨ feat(settings): add connector configuration with pydantic
 ✨ feat(state): add typed state manager
 ✨ feat(api-engine): add resilient HTTP client engine
 ✨ feat(models): add API response pydantic models
-✨ feat(client-api): add <API> client with auth and pagination
-🧬 feat(mappers): add <entity> and observable mappers
+✨ feat(client-api): add {API} client with auth and pagination
+🧬 feat(mappers): add {entity} and observable mappers
 ✨ feat(converter): add STIX converter orchestrator
 ✨ feat(connector): add main connector pipeline
 ✅ test(all): add BDD tests for all components

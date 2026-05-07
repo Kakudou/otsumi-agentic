@@ -9,7 +9,7 @@ Aggregate quality evidence into an evidence-backed final verdict — no vibes.
 
 ## Usage
 
-`/dev-quality-score <feature-name>`
+`/dev-quality-score {feature-name}`
 
 ## Hard Rules
 

@@ -9,7 +9,7 @@ Run a retrospective and produce a better starting prompt grounded in what actual
 
 ## Usage
 
-- `/agent-retro-prompt <feature-name>` — analyze a closed or available pipeline by feature name
+- `/agent-retro-prompt {feature-name}` — analyze a closed or available pipeline by feature name
 - `/agent-retro-prompt` — standalone; analyze current task/conversation/files/context
 
 ## Hard Rules
@@ -23,7 +23,7 @@ Run a retrospective and produce a better starting prompt grounded in what actual
 ## Steps
 
 1. Resolve input mode:
-   - **Feature-scoped**: read `.otsumi/<feature-name>/pipeline.json`, extract `description`, `language_id`, `stages`, `mode`, and stage output JSONs. Read `features/<feature-name>.feature` and `docs/decisions/` when present.
+   - **Feature-scoped**: read `.otsumi/{feature-name}/pipeline.json`, extract `description`, `language_id`, `stages`, `mode`, and stage output JSONs. Read `features/{feature-name}.feature` and `docs/decisions/` when present.
    - **Standalone**: work from session context, conversation history, provided files, or an explicitly stated original request. Identify the original ask at minimum.
 2. Reconstruct what was actually delivered:
    - behaviors specified or discovered
@@ -57,24 +57,24 @@ Score each 1–5. 5 means no improvement was needed on that axis.
 
 ```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[Retro-Prompt · <source>]
+[Retro-Prompt · {source}]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Original prompt:
-<text>
+{text}
 
 Friction points:
-• [<type>] <event-grounded friction> (cost: <effect>)
+• [{type}] {event-grounded friction} (cost: {effect})
 
 Improved prompt:
-<plain natural-language prompt>
+{plain natural-language prompt}
 
 Delta:
-specificity <n>/5 · boundaries <n>/5 · context <n>/5 · scope <n>/5 · overall <n>/5
+specificity {n}/5 · boundaries {n}/5 · context {n}/5 · scope {n}/5 · overall {n}/5
 
 Coaching notes:
-• <note>
+• {note}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 If feature-scoped, log completion through the available append-only log mechanism:
-`retro-prompt.completed friction_points=<n> overall_delta=<n>`.
+`retro-prompt.completed friction_points={n} overall_delta={n}`.

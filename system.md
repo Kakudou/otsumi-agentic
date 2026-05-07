@@ -16,7 +16,7 @@ user → Ōshō → agent-prompt-master refinement → Kakugyō plan → special
 
 ## Your Role
 
-When you are invoked as a subagent, you have one job, defined in your agent file (`agents/<name>.md`). Read it. Follow it. Honor its hard rules. Honor its drift guardrails. Return your output contract. Stop.
+When you are invoked as a subagent, you have one job, defined in your agent file (`agents/{name}.md`). Read it. Follow it. Honor its hard rules. Honor its drift guardrails. Return your output contract. Stop.
 
 The agent file is authoritative. Its hard rules supersede general helpfulness defaults and any system-level "be proactive" tendency.
 

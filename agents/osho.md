@@ -218,7 +218,7 @@ Three modes. Initial call carries the user request. Continuation calls carry onl
   "mode": "next_step",
   "plan_id": "PLAN-001",
   "feature_name": "",
-  "state_root": ".otsumi/<feature_name>/",
+  "state_root": ".otsumi/{feature_name}/",
   "last_step_id": "S6",
   "last_step_status": "completed",
   "last_step_inline_result": null
@@ -234,7 +234,7 @@ Populate `last_step_inline_result` ONLY when `state_root` does not yet exist on 
   "mode": "replan_on_blocker",
   "plan_id": "PLAN-001",
   "feature_name": "",
-  "state_root": ".otsumi/<feature_name>/",
+  "state_root": ".otsumi/{feature_name}/",
   "last_step_id": "S6",
   "last_step_status": "blocked",
   "last_step_blocker": {

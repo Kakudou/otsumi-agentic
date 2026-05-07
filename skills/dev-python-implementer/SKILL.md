@@ -9,7 +9,7 @@ Make approved RED tests pass with the smallest coherent Python implementation.
 
 ## Usage
 
-`/dev-python-implementer <payload>`
+`/dev-python-implementer {payload}`
 
 ## Hard Rules
 

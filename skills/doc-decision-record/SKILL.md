@@ -9,7 +9,7 @@ Record architectural or technical decisions, or document why no record is needed
 
 ## Usage
 
-`/doc-decision-record <feature-name>`
+`/doc-decision-record {feature-name}`
 
 ## Hard Rules
 

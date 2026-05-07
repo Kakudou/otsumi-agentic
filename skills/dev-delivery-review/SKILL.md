@@ -9,7 +9,7 @@ Evaluate whether delivered work is coherent, maintainable, scoped, and ready for
 
 ## Usage
 
-`/dev-delivery-review <feature-name>`
+`/dev-delivery-review {feature-name}`
 
 ## Hard Rules
 

@@ -9,8 +9,8 @@ Turn completed work into a reusable skill file by chaining retro-prompt then pro
 
 ## Usage
 
-- `/agent-create-skill <feature-name>` — distill a closed or available pipeline into a skill
-- `/agent-create-skill <skill-name> "<completed work summary>"` — distill the current task or conversation into the named skill
+- `/agent-create-skill {feature-name}` — distill a closed or available pipeline into a skill
+- `/agent-create-skill {skill-name} "{completed work summary}"` — distill the current task or conversation into the named skill
 - `/agent-create-skill` — interactive mode; ask what completed work to capture
 
 ## Hard Rules
@@ -28,7 +28,7 @@ Turn completed work into a reusable skill file by chaining retro-prompt then pro
 ### Phase 1 — Retrospective
 
 1. Invoke `/agent-retro-prompt`:
-   - feature-scoped if `<feature-name>` is provided
+   - feature-scoped if `{feature-name}` is provided
    - otherwise standalone on current task/conversation
 2. Capture the complete output:
    - `original_prompt`
@@ -53,13 +53,13 @@ Turn completed work into a reusable skill file by chaining retro-prompt then pro
 
 ```markdown
 ---
-name: <skill-name>
-description: "<when to use this skill>"
+name: {skill-name}
+description: "{when to use this skill}"
 ---
 
-# <Human Title>
+# {Human Title}
 
-<one-sentence identity/purpose in second person>
+{one-sentence identity/purpose in second person}
 
 ## Usage
 ...
@@ -89,16 +89,16 @@ Layout rules:
 
 ```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[Create Skill · <skill-name>]
+[Create Skill · {skill-name}]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-<full SKILL.md draft>
+{full SKILL.md draft}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Origin: <feature/task/conversation>
-Friction points captured: <n>
-Delta score: <overall>/5
+Origin: {feature/task/conversation}
+Friction points captured: {n}
+Delta score: {overall}/5
 Actions: [approve] [edit] [abort]
 ```
 
-8. On `approve`: create `skills/<skill-name>/SKILL.md`.
+8. On `approve`: create `skills/{skill-name}/SKILL.md`.
 9. On `edit`: apply changes and present again.
 10. On `abort`: write nothing; report that retro-prompt output remains available.

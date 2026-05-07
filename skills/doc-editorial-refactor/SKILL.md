@@ -9,8 +9,8 @@ Refactor technically correct Markdown that reads like committee sludge into shar
 
 ## Usage
 
-- `/doc-editorial-refactor <file>`
-- `/doc-editorial-refactor <file> --output <target>`
+- `/doc-editorial-refactor {file}`
+- `/doc-editorial-refactor {file} --output {target}`
 
 ## Hard Rules
 

@@ -7,7 +7,7 @@
 - Each specialist owns exactly one concern: requirements, validation, writing, evidence, atomic execution, challenge.
 - 34 stateless skills, domain-prefixed (`agent-`, `core-`, `flow-`, `dev-`, `dev-python-`, `design-`, `doc-`, `git-`); invocable standalone or chained inside a workflow.
 - BDD delivery workflow loads on demand. Assisted mode hands off implementation; vibecoding mode automates everything except approval gates.
-- Every closed feature leaves Gherkin specs, RED tests, ADRs, scorecards, and append-only event logs in `.otsumi/<feature-name>/`.
+- Every closed feature leaves Gherkin specs, RED tests, ADRs, scorecards, and append-only event logs in `.otsumi/{feature-name}/`.
 - Drift guardrails baked into every agent file. When behavior leaves scope, it routes out instead of bleeding.
 - Plain Markdown all the way down. Clone, symlink `system.md` + `agents/` + `skills/`, run. The voice manual ships as the `agent-load-persona` skill.
 
@@ -60,7 +60,7 @@ Every actionable request goes through Kakugyō first. No specialist talks to the
 
 ## Skills
 
-Skills are stateless capability units invoked as `/skill-name`. They live in `skills/<skill-name>/SKILL.md`. Names are domain-prefixed for grep-ability.
+Skills are stateless capability units invoked as `/skill-name`. They live in `skills/{skill-name}/SKILL.md`. Names are domain-prefixed for grep-ability.
 
 | Domain | Examples |
 |---|---|
@@ -87,9 +87,9 @@ When the request is "deliver this feature properly," Kakugyō selects the BDD de
 |---|---|---|
 | **S1** | `dev-bdd-gherkin` | Behavior contract written as Gherkin. Every scenario presented for approval. |
 | **S2** | `dev-bdd-gherkin` (trap mode) | Adversarial trap analysis: boundaries, auth gaps, concurrency, ambiguous terms. Traps approved before promotion. |
-| **S3** | `dev-stage-router` → `dev-<lang>-test-generator` | RED tests generated against surfaces that don't exist yet. RED confirmed before moving on. |
-| **S4** | `dev-stage-router` → `dev-<lang>-implementer` | Minimal implementation to GREEN. Nothing more. |
-| **S5** | `dev-stage-router` → `dev-<lang>-refactorer` | Atomic refactor. Tests after every change. RED rolls back. |
+| **S3** | `dev-stage-router` → `dev-{lang}-test-generator` | RED tests generated against surfaces that don't exist yet. RED confirmed before moving on. |
+| **S4** | `dev-stage-router` → `dev-{lang}-implementer` | Minimal implementation to GREEN. Nothing more. |
+| **S5** | `dev-stage-router` → `dev-{lang}-refactorer` | Atomic refactor. Tests after every change. RED rolls back. |
 | **S6** | `doc-decision-record` | ADR/TDR if a real decision was made. Explicit no-record reasoning otherwise. |
 | **S7** | `dev-quality-score` | Evidence-backed scoring. Blocking dimensions enforce closure gates. |
 | **S8** | `doc-writer` | Human-facing docs from real artifacts only. No invented behavior. |
@@ -136,7 +136,7 @@ Two surfaces do separate jobs:
 ### 1. Clone
 
 ```bash
-git clone https://github.com/kakudou/otsumi-ghcp.git ~/.otsumi
+git clone https://github.com/Kakudou/otsumi-agentic.git ~/.otsumi
 ```
 
 ### 2. Symlink
@@ -188,17 +188,17 @@ The `--allow-all-tools` flag enables the `task` tool used to spawn subagents. Re
 |---|---|---|
 | System context (every agent) | `system.md` | Keep lean. Loaded for every invocation. Add hard floors that apply to all roles. |
 | Ōshō voice | `skills/agent-load-persona/SKILL.md` | Rewrite to taste. Loaded by Ōshō on session start via `/agent-load-persona`, NOT by specialists. |
-| Agent role | `agents/<name>.md` | Tweak input/output contracts, drift guardrails, hard rules. |
+| Agent role | `agents/{name}.md` | Tweak input/output contracts, drift guardrails, hard rules. |
 | Workflow stages | `skills/dev-bdd-workflow/SKILL.md` | Change the stage table, the routing skills, the remediation policy. |
-| New language | Add `dev-<lang>-test-generator`, `dev-<lang>-implementer`, `dev-<lang>-refactorer` skills. Update `dev-stage-router` routing table. Add detection rules in `dev-env-setup`. | The board doesn't change. Only adapters do. |
-| New skill | `skills/<name>/SKILL.md` | Follow the canonical layout. Or use `/agent-create-skill` to distill one from completed work. |
+| New language | Add `dev-{lang}-test-generator`, `dev-{lang}-implementer`, `dev-{lang}-refactorer` skills. Update `dev-stage-router` routing table. Add detection rules in `dev-env-setup`. | The board doesn't change. Only adapters do. |
+| New skill | `skills/{name}/SKILL.md` | Follow the canonical layout. Or use `/agent-create-skill` to distill one from completed work. |
 | Triage tiers | `agents/osho.md` (Request Triage section) | Adjust what counts as Tier 0/1/2. Default to escalation, never downgrade on doubt. |
 
 ---
 
 ## What Gets Left Behind
 
-Every closed feature leaves a trail in `.otsumi/<feature-name>/`:
+Every closed feature leaves a trail in `.otsumi/{feature-name}/`:
 
 ```
 pipeline.json          ← routing selectors, mode, status, timestamps
@@ -216,7 +216,7 @@ events.json            ← append-only event log: every action, timestamped
 And in the project itself:
 
 ```
-features/<feature-name>.feature   ← the approved spec
+features/{feature-name}.feature   ← the approved spec
 tests/                            ← the test suite
 src/                              ← the implementation
 docs/decisions/                   ← ADR + TDR records

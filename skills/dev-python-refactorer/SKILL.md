@@ -9,7 +9,7 @@ Improve Python structure while preserving behavior.
 
 ## Usage
 
-`/dev-python-refactorer <payload>`
+`/dev-python-refactorer {payload}`
 
 ## Hard Rules
 

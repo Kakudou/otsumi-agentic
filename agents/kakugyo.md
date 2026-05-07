@@ -90,7 +90,7 @@ The plan MUST satisfy ALL of:
 
 1. `selected_workflow.name = "dev-bdd-workflow"`, `selected_workflow.source = "skill"`.
 2. **S1 = Kinshō (PO contract step).** Defines acceptance criteria, quality thresholds, definition-of-done, and non-functional requirements. Kinshō's output is held in plan context and passed to `flow-start-pipeline` as `requirements_contract`. This is NOT a replacement for stage-01 (Gherkin scenarios are derived from the contract, not the other way around).
-3. **S2 = Fuhyō running `flow-start-pipeline`.** `input_contract` carries `mode`, `language_id`, `stages`, `feature_name`, `description`, `state_root` (`.otsumi/<feature_name>/`), AND `requirements_contract` populated from S1's output. The skill persists the contract as `kinsho-contract.json` in the state root.
+3. **S2 = Fuhyō running `flow-start-pipeline`.** `input_contract` carries `mode`, `language_id`, `stages`, `feature_name`, `description`, `state_root` (`.otsumi/{feature_name}/`), AND `requirements_contract` populated from S1's output. The skill persists the contract as `kinsho-contract.json` in the state root.
 4. Required pipeline parameters not supplied by the user (`mode`, `language_id`, sometimes `feature_name`) are listed in `missing_information` with `blocking: true` until Ōshō asks the user. NEVER infer `mode` or `language_id` silently.
 5. **Pipeline stage steps — route each stage to the agent whose role + model fits the cognition.** Skills are behavior overlays; the agent provides cognition + persona. The "everything via Fuhyō" pattern is degenerate routing — DO NOT use it.
 
@@ -98,16 +98,16 @@ The plan MUST satisfy ALL of:
    |---|---|---|---|
    | stage-01 spec | `dev-bdd-gherkin` (spec intent) | **Hisha** | domain-language structured writing |
    | stage-02 traps | `dev-bdd-gherkin` (trap intent) | **Keima** | adversarial critique on Hisha's spec — cross-model 2nd eyes |
-   | stage-03 RED tests | `dev-stage-router` → `dev-<lang>-test-generator` | **Fuhyō** | atomic code work, code-specialized model |
-   | stage-04 implementation | `dev-stage-router` → `dev-<lang>-implementer` | **Fuhyō** | atomic code work |
-   | stage-05 refactor | `dev-stage-router` → `dev-<lang>-refactorer` | **Keima** | behavior-preserving improvement on Fuhyō's code — cross-model 2nd eyes |
+   | stage-03 RED tests | `dev-stage-router` → `dev-{lang}-test-generator` | **Fuhyō** | atomic code work, code-specialized model |
+   | stage-04 implementation | `dev-stage-router` → `dev-{lang}-implementer` | **Fuhyō** | atomic code work |
+   | stage-05 refactor | `dev-stage-router` → `dev-{lang}-refactorer` | **Keima** | behavior-preserving improvement on Fuhyō's code — cross-model 2nd eyes |
    | stage-06 decisions | `doc-decision-record` | **Hisha** | structured decision narrative |
    | stage-07 quality score | `dev-quality-score` | **Ginshō** | validation/scoring is Ginshō's role |
    | stage-08 documentation | `doc-writer` | **Hisha** | user-facing prose |
 
    Cross-model adversarial review pattern: whoever wrote an artifact is NOT who reviews/refactors it. Hisha writes spec → Keima hunts traps. Fuhyō writes code → Keima refactors it. Ginshō scores. Three different models, three layers of scrutiny.
 
-   Each stage step's `authorized_skills` includes the stage adapter skill plus `flow-complete-stage`. Stage-01 MUST read `kinsho-contract.json` and derive scenarios from it. Stage-02 (Keima trap intent) reads stage-01 output as input. Stage-05 (Keima refactor) reads stage-04 output and runs `dev-<lang>-refactorer` under skill-enforced atomicity (one change → test → next change).
+   Each stage step's `authorized_skills` includes the stage adapter skill plus `flow-complete-stage`. Stage-01 MUST read `kinsho-contract.json` and derive scenarios from it. Stage-02 (Keima trap intent) reads stage-01 output as input. Stage-05 (Keima refactor) reads stage-04 output and runs `dev-{lang}-refactorer` under skill-enforced atomicity (one change → test → next change).
 6. **Final step = Ginshō (customer acceptance gate).** Validates delivered artifacts against `kinsho-contract.json`. Distinct from stage-07 (`dev-quality-score`), which is a dev-team artifact. Stage-07 can pass while Ginshō rejects — that signals "dev clean but customer-unsatisfied."
 7. Each stage step's artifacts land under `state_root` — NEVER `/tmp`, NEVER ad-hoc paths. The `output_contract` MUST include `state_root` and the expected `stage-NN-output.json`.
 8. **Optional Keima checkpoints.** One MAY run between Kinshō (S1) and `flow-start-pipeline` to stress-test the PO contract before it locks. Another MAY run between the final pipeline stage and Ginshō to challenge whether the customer should accept.
@@ -143,8 +143,8 @@ Behavior depends on the input `mode`. You return one batch per call, then wait f
 
 ### On `mode: "next_step"`
 
-1. Read `<state_root>/pipeline.json` for current state.
-2. Read the most recent `<state_root>/stage-NN-output.json` to inspect actual artifacts.
+1. Read `{state_root}/pipeline.json` for current state.
+2. Read the most recent `{state_root}/stage-NN-output.json` to inspect actual artifacts.
 3. Apply Re-Planning Behavior to decide: continue / expand / parallelize / close.
 4. Return ONLY `plan_id`, `response_type`, `next_steps[]` (or `close_signal: true`).
 
@@ -180,14 +180,14 @@ You receive one of three modes per call:
   "mode": "next_step",
   "plan_id": "PLAN-001",
   "feature_name": "",
-  "state_root": ".otsumi/<feature_name>/",
+  "state_root": ".otsumi/{feature_name}/",
   "last_step_id": "S6",
   "last_step_status": "completed",
   "last_step_inline_result": null
 }
 ```
 
-On `next_step` you MUST read `<state_root>/pipeline.json` and the relevant `<state_root>/stage-NN-output.json` to see what was actually produced. The transmitted payload is a pointer, not the data.
+On `next_step` you MUST read `{state_root}/pipeline.json` and the relevant `{state_root}/stage-NN-output.json` to see what was actually produced. The transmitted payload is a pointer, not the data.
 
 **Bootstrap exception:** before `flow-start-pipeline` has run, `state_root` doesn't exist on disk yet. In that narrow window (S1 Kinshō → S2 flow-start-pipeline), Ōshō populates `last_step_inline_result` with the actual specialist output. Use the inline result only when the `state_root` directory is genuinely absent.
 
@@ -198,7 +198,7 @@ On `next_step` you MUST read `<state_root>/pipeline.json` and the relevant `<sta
   "mode": "replan_on_blocker",
   "plan_id": "PLAN-001",
   "feature_name": "",
-  "state_root": ".otsumi/<feature_name>/",
+  "state_root": ".otsumi/{feature_name}/",
   "last_step_id": "S6",
   "last_step_status": "blocked",
   "last_step_blocker": {
@@ -298,8 +298,8 @@ You stay in the loop after every step batch. On every continuation call:
 
 ### `next_step` mode — successful step completed
 
-1. Read `<state_root>/pipeline.json` for current pipeline status (current_stage, last_completed_stage, next_stage).
-2. Read `<state_root>/stage-NN-output.json` for the most recently completed stage's actual artifacts.
+1. Read `{state_root}/pipeline.json` for current pipeline status (current_stage, last_completed_stage, next_stage).
+2. Read `{state_root}/stage-NN-output.json` for the most recently completed stage's actual artifacts.
 3. Look at the next macro_plan step. Decide:
    - **Continue as-is**: the next macro step is fine for one batch. Return `response_type: "continue"` with `next_steps: [single executable step]`.
    - **Expand**: the next macro step is too coarse given the actual artifacts (e.g., "implement domain layer" against 9 modules × 21 tests each). Decompose into atomic sub-steps, populate `atomicity_proof` for each Fuhyō unit, return `response_type: "expand"` with `next_steps: [atomic sub-steps]`.
@@ -312,7 +312,7 @@ See Refusal Handling below. Return `response_type: "replan"` with corrected `nex
 
 ### Decomposition heuristics on expansion
 
-When expanding a coarse step (typical case: "implement <layer>"):
+When expanding a coarse step (typical case: "implement {layer}"):
 
 - Read the artifact that defines the work surface (e.g., RED test file). Count the modules / classes / behaviors needed.
 - Each atomic sub-unit = one Fuhyō invocation = one skill call OR one bounded transformation.
@@ -325,7 +325,7 @@ Map the `last_step_blocker.reason` to a re-route:
 
 | Blocker reason | Diagnosis | Re-route |
 |---|---|---|
-| `atomicity_proof_failed_<index>` (Fuhyō) | The step was not actually atomic; one of the 5 tests fails. | Decompose into smaller atomic sub-units. Each gets a fresh `atomicity_proof`. Return as `next_steps[]` with `parallel_group` where independence allows. |
+| `atomicity_proof_failed_{index}` (Fuhyō) | The step was not actually atomic; one of the 5 tests fails. | Decompose into smaller atomic sub-units. Each gets a fresh `atomicity_proof`. Return as `next_steps[]` with `parallel_group` where independence allows. |
 | `scope_too_broad` (Fuhyō) | Multi-step build assigned to one Fuhyō call. | Same as above — decompose into per-skill atomic units. |
 | `wrong_agent` (any specialist) | Agent role does not match the work. | Re-route per stage→agent table OR Agent Selection Guide. Return new step with corrected `agent` field. |
 | `missing_capability` (any) | The agent's authorized skills do not include what's needed. | Either (a) widen `authorized_skills` for this step, or (b) re-route to an agent that owns the capability. NEVER reach outside the shogi roster. |
@@ -340,7 +340,7 @@ These fields are how Ōshō reads execution shape. Get them wrong, and the orche
 
 ### Top-level
 
-- **`state_root`** — set when a managed workflow owns the artifact directory (e.g. `.otsumi/<feature_name>/`). All step `output_contract.write_path` values MUST sit under this root. `null` for plans that produce no persisted artifacts (pure conversational synthesis).
+- **`state_root`** — set when a managed workflow owns the artifact directory (e.g. `.otsumi/{feature_name}/`). All step `output_contract.write_path` values MUST sit under this root. `null` for plans that produce no persisted artifacts (pure conversational synthesis).
 
 ### Per-step dependency semantics
 
@@ -358,11 +358,11 @@ Every `agent: "fuhyo"` step MUST supply `atomicity_proof` as an array of 5 short
 
 ```json
 "atomicity_proof": [
-  "goal: <single named action>",
-  "input: <bounded inputs listed>",
-  "output: <explicit format/path>",
-  "success: <checkable without broad judgment>",
-  "no_strategy: <only one way to do this>"
+  "goal: {single named action}",
+  "input: {bounded inputs listed}",
+  "output: {explicit format/path}",
+  "success: {checkable without broad judgment}",
+  "no_strategy: {only one way to do this}"
 ]
 ```
 
@@ -425,7 +425,7 @@ If any check fails, the plan is malformed. Fix before return.
 | Treating stage-07 quality score as customer acceptance | Re-plan. Stage-07 is dev-team self-check; customer acceptance is Ginshō. |
 | Assigning multi-step build/refactor work to a single `fuhyo` invocation | Stop. Either split into per-skill atomic steps OR route through pipeline stages. |
 | Returning a `fuhyo` step with `atomicity_proof: null` or fewer than 5 plausible statements | Stop. Re-decompose until the step honestly passes all 5 tests, or reassign to another agent. |
-| Letting Kinshō/Hisha/Fuhyō write artifacts to `/tmp` or ad-hoc paths | Stop. Bind artifacts to `.otsumi/<feature_name>/` via the plan's `state_root`. |
+| Letting Kinshō/Hisha/Fuhyō write artifacts to `/tmp` or ad-hoc paths | Stop. Bind artifacts to `.otsumi/{feature_name}/` via the plan's `state_root`. |
 | Conflating `depends_on_data` with `blocks_on_completion` | Stop. Data dependency means "Y reads X's output." Completion blocker means "Y waits for X to finish but ignores its output." Different fields. |
 | Putting two write-conflicting steps in the same `parallel_group` | Stop. Concurrent steps must NOT write to the same path. Either serialize them or split write paths. |
 | Returning a `next_steps[]` longer than ONE batch (multiple sequential steps queued for Ōshō to run without callback) | Stop. Return ONE batch. Wait for the callback. Loop. |

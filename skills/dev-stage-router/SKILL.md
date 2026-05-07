@@ -9,7 +9,7 @@ Route language-bound stages to adapter skills. Preserve adapter routing for Stag
 
 ## Usage
 
-`/dev-stage-router --stage <stage-id> --lang <language_id> <payload>`
+`/dev-stage-router --stage {stage-id} --lang {language_id} {payload}`
 
 ## Hard Rules
 

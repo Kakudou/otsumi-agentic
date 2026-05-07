@@ -10,9 +10,9 @@ Turn working-tree changes into focused, reviewable local commits.
 ## Usage
 
 - `/git-commits`
-- `/git-commits --scope <scope>`
+- `/git-commits --scope {scope}`
 - `/git-commits --save`
-- `/git-commits --fixup <commit>`
+- `/git-commits --fixup {commit}`
 
 ## Hard Rules
 
@@ -28,13 +28,13 @@ Turn working-tree changes into focused, reviewable local commits.
 Prefer:
 
 ```text
-<emoji> <type>(<scope>): <message>
+{emoji} {type}({scope}): {message}
 ```
 
 Or plain Conventional Commit if emoji is not requested:
 
 ```text
-<type>(<scope>): <message>
+{type}({scope}): {message}
 ```
 
 Examples:
@@ -56,8 +56,8 @@ Use `save(scope): message` for temporary checkpoints. Save commits are allowed d
 Use fixups for review corrections:
 
 ```bash
-git commit --fixup=<target>
-git rebase -i --autosquash <base>
+git commit --fixup={target}
+git rebase -i --autosquash {base}
 ```
 
 Fixups are temporary scaffolding; they SHOULD NOT survive final history unless the workflow explicitly allows it.

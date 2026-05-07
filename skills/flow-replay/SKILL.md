@@ -9,7 +9,7 @@ Re-run downstream workflow stages while preserving earlier accepted artifacts.
 
 ## Usage
 
-`/flow-replay <feature-name> --from <stage-id>`
+`/flow-replay {feature-name} --from {stage-id}`
 
 ## Hard Rules
 
@@ -20,7 +20,7 @@ Re-run downstream workflow stages while preserving earlier accepted artifacts.
 
 ## Steps
 
-1. Read `.otsumi/<feature-name>/pipeline.json`.
+1. Read `.otsumi/{feature-name}/pipeline.json`.
 2. Confirm status is `closed` or `aborted`.
 3. Validate `--from` is an active stage.
 4. List downstream artifacts that will be overwritten.

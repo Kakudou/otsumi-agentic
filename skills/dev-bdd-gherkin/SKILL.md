@@ -9,7 +9,7 @@ Produce a domain-language Gherkin behavior contract and adversarial trap analysi
 
 ## Usage
 
-`/dev-bdd-gherkin <feature-name>`
+`/dev-bdd-gherkin {feature-name}`
 
 ## Hard Rules
 
@@ -21,7 +21,7 @@ Produce a domain-language Gherkin behavior contract and adversarial trap analysi
 
 ## Steps
 
-1. Read the feature request, project context, existing features, and vocabulary. When `.otsumi/<feature-name>/kinsho-contract.json` exists, read it FIRST — it is the PO contract; Gherkin scenarios MUST be derived from its acceptance criteria, thresholds, and definition-of-done.
+1. Read the feature request, project context, existing features, and vocabulary. When `.otsumi/{feature-name}/kinsho-contract.json` exists, read it FIRST — it is the PO contract; Gherkin scenarios MUST be derived from its acceptance criteria, thresholds, and definition-of-done.
 2. Draft scenarios using `Feature`, optional `Background`, `Scenario`, `Given / When / Then / And`.
 3. Present scenarios for approval.
 4. Run trap analysis covering:
@@ -34,7 +34,7 @@ Produce a domain-language Gherkin behavior contract and adversarial trap analysi
    - ambiguous terms
 5. Present traps for approval.
 6. Promote approved traps into scenarios.
-7. Write `features/<feature-name>.feature` when applicable.
+7. Write `features/{feature-name}.feature` when applicable.
 8. Return Stage-1/Stage-2 artifacts or standalone output.
 
 ## Output

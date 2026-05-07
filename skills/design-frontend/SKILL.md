@@ -9,7 +9,7 @@ Generate creative, polished frontend code that avoids generic AI aesthetics.
 
 ## Usage
 
-`/design-frontend <frontend request>`
+`/design-frontend {frontend request}`
 
 ## Hard Rules
 

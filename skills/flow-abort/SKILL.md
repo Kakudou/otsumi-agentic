@@ -9,7 +9,7 @@ Stop a workflow without deleting evidence. Aborted state remains inspectable and
 
 ## Usage
 
-`/flow-abort <feature-name> "<reason>"`
+`/flow-abort {feature-name} "{reason}"`
 
 ## Hard Rules
 
@@ -20,7 +20,7 @@ Stop a workflow without deleting evidence. Aborted state remains inspectable and
 
 ## Steps
 
-1. Read `.otsumi/<feature-name>/pipeline.json`.
+1. Read `.otsumi/{feature-name}/pipeline.json`.
 2. Confirm the workflow is running or paused.
 3. Set `status` to `aborted`.
 4. Store:

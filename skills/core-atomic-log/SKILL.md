@@ -9,7 +9,7 @@ Append exactly one event to an append-only log.
 
 ## Usage
 
-`/core-atomic-log <scope-name> <event-type> "<details>"`
+`/core-atomic-log {scope-name} {event-type} "{details}"`
 
 ## Hard Rules
 
@@ -23,16 +23,16 @@ Append exactly one event to an append-only log.
 
 ## Steps
 
-1. Resolve log location: `.otsumi/<scope-name>/events.json` (workflow, pipeline, or generic scope).
+1. Resolve log location: `.otsumi/{scope-name}/events.json` (workflow, pipeline, or generic scope).
 2. If the file does not exist, initialize it as `[]`.
 3. If the file exists but is not a JSON array, stop and report corruption.
 4. Append:
 
 ```json
 {
-  "timestamp": "<ISO-8601>",
-  "event": "<event-type>",
-  "details": "<details>"
+  "timestamp": "{ISO-8601}",
+  "event": "{event-type}",
+  "details": "{details}"
 }
 ```
 

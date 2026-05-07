@@ -10,7 +10,7 @@ List planned work records — read-only.
 ## Usage
 
 - `/core-backlog`
-- `/core-backlog <scope-name>`
+- `/core-backlog {scope-name}`
 
 ## Hard Rules
 

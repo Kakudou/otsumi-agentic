@@ -9,7 +9,7 @@ Centralize state updates after one stage finishes. Records completion and comput
 
 ## Usage
 
-`/flow-complete-stage <feature-name> <stage-id> "<summary>"`
+`/flow-complete-stage {feature-name} {stage-id} "{summary}"`
 
 ## Hard Rules
 
@@ -20,10 +20,10 @@ Centralize state updates after one stage finishes. Records completion and comput
 
 ## Steps
 
-1. Read `.otsumi/<feature-name>/pipeline.json`.
-2. Verify `<stage-id>` is in `stages`.
+1. Read `.otsumi/{feature-name}/pipeline.json`.
+2. Verify `{stage-id}` is in `stages`.
 3. Verify the stage output exists when required:
-   - `.otsumi/<feature-name>/stage-XX-output.json`
+   - `.otsumi/{feature-name}/stage-XX-output.json`
 4. Set:
    - `last_completed_stage`
    - `current_stage`

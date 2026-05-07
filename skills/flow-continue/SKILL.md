@@ -9,7 +9,7 @@ Resume an assisted or paused workflow safely. When the user owned a stage, valid
 
 ## Usage
 
-`/flow-continue <feature-name>`
+`/flow-continue {feature-name}`
 
 ## Hard Rules
 
@@ -20,7 +20,7 @@ Resume an assisted or paused workflow safely. When the user owned a stage, valid
 
 ## Steps
 
-1. Read `.otsumi/<feature-name>/pipeline.json`.
+1. Read `.otsumi/{feature-name}/pipeline.json`.
 2. Confirm status is `paused` or resumable.
 3. Identify `next_stage`.
 4. If resuming after user-owned implementation/refactor:
