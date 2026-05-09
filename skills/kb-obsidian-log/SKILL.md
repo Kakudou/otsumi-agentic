@@ -6,11 +6,20 @@ interaction_model: single-shot
 
 # KB Obsidian Log
 
-Provide append-only operations logging for kb-obsidian skill events and a structured read interface for querying that history. Every vault skill event — remember, zettelize, assemble, search, lint, write, archive — is captured as a timestamped, structured entry in a per-vault log file located at `.otsumi/kb-vault/{vault-id}/events.json`. This skill never re-implements append logic: all write mechanics are delegated to `core-atomic-log`. It is infrastructure support — if an append fails, the parent vault operation is not blocked.
+Provide append-only operations logging for kb-obsidian skill events and a structured read interface for querying that history.
+
+Every vault skill event (`remember`, `zettelize`, `assemble`, `search`, `lint`, `write`, `archive`) is captured as a timestamped structured entry in:
+
+`.otsumi/kb-vault/{vault-id}/events.json`
+
+This skill is infrastructure support:
+- It NEVER re-implements append mechanics.
+- It ALWAYS delegates append behavior to `core-atomic-log`.
+- If append fails, the parent vault operation is NOT blocked.
 
 ## Usage
 
-**Append mode** (called by the orchestration layer after a vault skill completes):
+### Append mode (called by orchestration after a vault skill completes)
 
 - `/kb-obsidian-log append {vault-id} {event-type} "{details}"` — append one vault skill event for the named vault.
 - `/kb-obsidian-log append {vault-id} zettelize.completed "created=3 updated=1 skipped=2 source=1712345678.md"` — example zettelize outcome.
@@ -21,7 +30,7 @@ Provide append-only operations logging for kb-obsidian skill events and a struct
 - `/kb-obsidian-log append {vault-id} write.completed "output=chess-digest.md words=1240"` — example write outcome.
 - `/kb-obsidian-log append {vault-id} archive.completed "target=old-note.md status=archived"` — example archive outcome.
 
-**Read mode** (query existing history):
+### Read mode (query existing history)
 
 - `/kb-obsidian-log read {vault-id}` — dump full history for the vault.
 - `/kb-obsidian-log read {vault-id} --last {N}` — show the last N events.
@@ -53,13 +62,13 @@ Provide append-only operations logging for kb-obsidian skill events and a struct
 
 Note: this skill does NOT read `raw_root`, `zettel_root`, or any other vault-managed path. Resolution is limited to obtaining the vault id for scope construction.
 
-### 2. Architecture decision — wrapper model (Option A)
+### 2. Architecture decision (wrapper model, Option A)
 
-This skill is invoked by the **orchestration layer** (Ōshō or Kakugyō) after a kb-obsidian skill completes, not from within each skill's own Steps.
+This skill is invoked by the orchestration layer (Ōshō or Kakugyō) after a kb-obsidian skill completes, not from within each skill's own Steps.
 
-**Options evaluated:**
+#### Options evaluated
 
-**Option A — Wrapper (Ōshō-level integration)**
+##### Option A — Wrapper (Ōshō-level integration)
 The orchestration layer appends one log event after each vault skill returns. The vault skills themselves have no logging awareness.
 
 - Pro: zero modification to existing skill contracts; skills stay unaware of logging infrastructure.
@@ -67,7 +76,7 @@ The orchestration layer appends one log event after each vault skill returns. Th
 - Pro: kb-obsidian SKILL.md files are specification documents, not executable code — adding a logging step to each one creates a maintenance surface without mechanical enforcement.
 - Con: cannot capture skill-internal events (e.g., intermediate dedup pass counts in zettelize). Outcome-level logging only.
 
-**Option B — Augmentation (per-skill authorized_skills inclusion)**
+##### Option B — Augmentation (per-skill authorized_skills inclusion)
 Each vault skill declares `kb-obsidian-log` in its `authorized_skills` or adds an explicit logging step to its Steps section.
 
 - Pro: finer-grained events possible.
@@ -75,13 +84,14 @@ Each vault skill declares `kb-obsidian-log` in its `authorized_skills` or adds a
 - Con: any future vault skill must remember to include the log step.
 - Con: SKILL.md files have no enforcement mechanism — the coupling becomes a documentation burden, not a contract guarantee.
 
-**Decision: Option A (Wrapper).**
+#### Decision
+**Option A (Wrapper).**
 
 The event vocabulary (`*.completed`) is inherently outcome-level. The orchestration layer observes every skill invocation and its result; it has the data needed to build the `details` string. Keeping skills unaware of logging preserves the clean single-concern contract each skill already has. If finer-grained intra-skill events are needed in the future, a Kakugyō replan can introduce them incrementally per skill without touching the rest of the family.
 
 ### 3. Construct the event payload
 
-Build the three required arguments for `core-atomic-log`:
+Build the 3 required arguments for `core-atomic-log`:
 
 1. **Scope name**: `kb-vault/{vault-id}` (from Step 1).
 2. **Event type**: one of the documented vocabulary types (see Event Vocabulary below), e.g. `zettelize.completed`.
@@ -98,7 +108,7 @@ If no return-value data is available, use `"details": "no output data"`. Never f
 
 ### 4. Delegate append to core-atomic-log
 
-Invoke `core-atomic-log` with:
+Invoke `core-atomic-log` as:
 
 ```
 /core-atomic-log kb-vault/{vault-id} {event-type} "{details}"
@@ -113,7 +123,7 @@ Invoke `core-atomic-log` with:
 
 Do not duplicate any of this logic.
 
-**On failure**: if `core-atomic-log` reports an error or is unavailable, surface the failure once to the conversation (e.g. "Log append failed: {reason}") and allow the parent operation to conclude normally. Do not propagate the failure as a blocking error.
+On failure: if `core-atomic-log` reports an error or is unavailable, surface the failure once to the conversation (e.g. `"Log append failed: {reason}"`) and allow the parent operation to conclude normally. Do not propagate the failure as a blocking error.
 
 ### 5. Read mode — query history
 
@@ -141,7 +151,7 @@ After a failed append:
 
 ## Event Vocabulary
 
-The following event types are canonical for this skill family:
+Canonical event types for this skill family:
 
 | Event type | Triggering skill | Details convention |
 |---|---|---|
@@ -157,7 +167,7 @@ Future skills that extend this family MUST register their event type in this tab
 
 ## Scope-Name Convention
 
-Vault skill events use the prefix `kb-vault/` followed by the vault id from `system.md`:
+Vault skill events MUST use the prefix `kb-vault/` followed by the vault id from `system.md`:
 
 ```
 kb-vault/{vault-id}

@@ -5,11 +5,15 @@ description: "Resume a paused pipeline and validate any user-owned implementatio
 
 # Flow Continue
 
-Resume an assisted or paused workflow safely. When the user owned a stage, validate that work before moving forward.
+Resume a paused workflow safely. If the user owned implementation/refactor work, validate it before advancing.
 
 ## Usage
 
 `/flow-continue {feature-name}`
+
+## Mission
+
+Execute deterministic resume logic against `.otsumi/{feature-name}/pipeline.json`, enforce stage validation requirements, and return the next workflow action.
 
 ## Hard Rules
 
@@ -18,7 +22,7 @@ Resume an assisted or paused workflow safely. When the user owned a stage, valid
 - NEVER skip tests or quality validation required by active stages.
 - NEVER advance if the next stage is not in the pipeline state.
 
-## Steps
+## Core Procedure
 
 1. Read `.otsumi/{feature-name}/pipeline.json`.
 2. Confirm status is `paused` or resumable.
@@ -33,14 +37,14 @@ Resume an assisted or paused workflow safely. When the user owned a stage, valid
 
 ## Restored Resume Contract (Assisted Mode)
 
-Use this section as the authoritative assisted-mode resume behavior for `flow-continue`.
+This section is the authoritative assisted-mode behavior for `flow-continue`.
 Fuhyō is the executor for validation/materialization steps; Ōshō is the user interface for explicit user confirmations.
 
 Stage output schemas are canonically defined by `dev-bdd-workflow`; this skill must materialize outputs using those schema fields.
 
-### Step 3 Confirmation Checks (Expanded)
+### Step 3 Confirmation Checks (Required)
 
-When validating resumability from `.otsumi/{feature-name}/pipeline.json`, confirm all of the following:
+When validating resumability from `.otsumi/{feature-name}/pipeline.json`, confirm all conditions below:
 
 - `mode` is `assisted`
 - `status` is `paused`
@@ -52,7 +56,7 @@ When validating resumability from `.otsumi/{feature-name}/pipeline.json`, confir
 
 ### Contiguous Block Materialization Rule
 
-If `next_stage` begins a contiguous block of Stage-04/Stage-05: materialize every such stage in order before advancing.
+If `next_stage` starts a contiguous block of Stage-04/Stage-05, materialize every stage in that block, in order, before advancing.
 
 ### Stage-04 Assisted Mode Procedure (6 Steps)
 

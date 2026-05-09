@@ -5,7 +5,11 @@ description: "Perform safe Python refactors as atomic behavior-preserving change
 
 # Dev Python Refactorer
 
-Improve Python structure while preserving behavior.
+Perform behavior-preserving Python refactors through strictly atomic, test-validated steps.
+
+## Purpose
+
+Improve code structure, readability, and maintainability while preserving runtime behavior, public contracts, and architectural boundaries.
 
 ## Usage
 
@@ -18,7 +22,7 @@ Improve Python structure while preserving behavior.
 - One refactor step MUST be atomic and reversible.
 - If tests fail after a refactor step, MUST revert or stop.
 
-## Steps
+## Execution Flow
 
 1. Establish baseline GREEN evidence.
 2. Identify small refactor opportunities.
@@ -94,3 +98,8 @@ Return result data with an `aborted_refactors` array:
    - If final run is not GREEN, halt and report to Ōshō before producing completion output.
 4. If quality checks are requested by the invoking flow, run `dev-quality-check` after tests and report results.
 5. Stage closure belongs to workflow control (`flow-complete-stage`), not to this skill contract.
+
+## Non-Negotiable Preservation Summary
+
+- Hard rules, output contract requirements, drift guardrails, and behavior-preservation logic in this skill are mandatory and must not be weakened.
+- Any ambiguity must be resolved in favor of smaller changes, stronger safety checks, and stricter behavior preservation.

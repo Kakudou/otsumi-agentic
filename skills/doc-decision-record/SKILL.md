@@ -5,7 +5,7 @@ description: "Create ADR/TDR decision records or explicit no-record reasoning ba
 
 # Doc Decision Record
 
-Record architectural or technical decisions, or document why no record is needed.
+Create ADR/TDR decision records when warranted, or return explicit no-record reasoning when not warranted.
 
 ## Usage
 
@@ -27,15 +27,15 @@ Record architectural or technical decisions, or document why no record is needed
 ## Steps
 
 1. Inspect behavior contract, implementation artifacts, tests, and review notes.
-2. Detect decisions involving:
+2. Detect whether the feature introduced or modified decisions involving:
    - architecture
    - storage
    - integration
    - dependency
    - API/interface
    - security or operational tradeoff
-3. Write records under `docs/decisions/` when required.
-4. If no record is needed, return explicit reasoning.
+3. If required, write records under `docs/decisions/`.
+4. If not required, return explicit non-empty reasoning.
 
 ## Trigger Checklist
 

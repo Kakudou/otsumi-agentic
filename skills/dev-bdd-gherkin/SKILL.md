@@ -6,6 +6,7 @@ description: "Create Gherkin behavior specs and trap analysis with user approval
 # Dev BDD Gherkin
 
 Produce a domain-language Gherkin behavior contract and adversarial trap analysis before tests or implementation.
+Optimize for deterministic, approval-gated behavior: draft scenarios first, collect explicit user decisions, then materialize artifacts.
 
 ## Usage
 
@@ -18,6 +19,12 @@ Produce a domain-language Gherkin behavior contract and adversarial trap analysi
 - MUST gate trap promotion on approval — NEVER drop approved traps.
 - NEVER include implementation details, language routing, storage choices, or test framework mechanics in Gherkin.
 - NEVER duplicate scenario output.
+
+## Non-Negotiable Preservation Rules
+
+- Hard rules above are immutable and always take precedence over convenience.
+- Output contracts and stage result schemas are mandatory format contracts, not suggestions.
+- Drift guardrails in Stage-1/Stage-2 flow (approval gates, rejection logging, promotion rules) MUST remain intact.
 
 ## Steps
 
@@ -37,6 +44,12 @@ Produce a domain-language Gherkin behavior contract and adversarial trap analysi
 7. Write `features/{feature-name}.feature` when applicable.
 8. Return Stage-1/Stage-2 artifacts or standalone output.
 
+### Step Execution Constraints
+
+- Keep scenario statements externally observable and business-verifiable.
+- Keep each scenario outcome singular and unambiguous.
+- When a scenario is rejected, preserve it in stage records with rationale; never silently replace or delete.
+
 ## Output
 
 ```json
@@ -48,6 +61,14 @@ Produce a domain-language Gherkin behavior contract and adversarial trap analysi
   "feature_file": ""
 }
 ```
+
+### Output Contract Notes
+
+- `feature_name`: canonical slug or name used by the workflow.
+- `scenarios`: finalized scenarios after approvals.
+- `traps`: full trap inventory analyzed during Stage-2 (approved and rejected).
+- `approved_traps_promoted`: subset of approved traps promoted into scenarios.
+- `feature_file`: target path when file output is produced; empty string when not applicable.
 
 ## Gherkin Reference Material
 
@@ -137,6 +158,12 @@ Feature: Password reset request
 - Use `But` when expressing contrast or negation; use `And` for neutral continuation.
 - Keep strict domain language. Avoid implementation terms and technical internals.
 
+### Quality Bar for Scenario Drafts
+
+- Every `Then` MUST describe an observable business outcome.
+- Scenario wording MUST avoid hidden technical assumptions.
+- Domain terms MUST match project vocabulary or Kinshō contract terminology.
+
 ## Stage-1 Activation (Spec Drafting by Fuhyō)
 
 Kakugyō orchestrates the pipeline. Fuhyō executes drafting. Ōshō is the only user-facing agent and presents each scenario to the user.
@@ -200,3 +227,11 @@ scenarios_added: <int>
 - Silence is not consent: each trap requires explicit decision.
 - Rejected traps are retained in stage records as `approved: false` with `rejection_reason`.
 - Approved `critical` and `major` traps must be promoted into feature scenarios.
+
+## Final Validation Checklist
+
+- Hard rules preserved and enforced.
+- Approval gates enforced for scenarios and traps.
+- Rejection logging complete (`approved: false` + `rejection_reason`).
+- Output contract shape preserved (JSON + stage schemas).
+- Promoted traps are only approved `critical`/`major` items.

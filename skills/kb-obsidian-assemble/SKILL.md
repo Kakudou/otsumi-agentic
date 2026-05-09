@@ -6,7 +6,18 @@ interaction_model: multi-turn
 
 # KB Obsidian Assemble
 
-Curate existing zettels into a topical resource note in a vault's `resources_root`. This skill is a **librarian, not a writer** — it links, embeds, and structures, but never invents zettel-grade content. If the existing zettel set cannot cover the topic, the gap is surfaced to the user and the skill stops.
+Curate existing zettels into a topical resource note in a vault's `resources_root`.
+
+This skill is a **librarian, not a writer**:
+- it links, embeds, and structures existing zettels,
+- it never invents zettel-grade content,
+- it surfaces gaps and stops when coverage is insufficient.
+
+## Operating Intent
+
+- Primary objective: assemble a resource note from existing zettels only.
+- Zero invention policy: no new factual prose outside source zettels.
+- User-governed gaps: non-empty gap reports require explicit user decision (unless `--strict`).
 
 ## Usage
 
@@ -78,7 +89,8 @@ Curate existing zettels into a topical resource note in a vault's `resources_roo
 
 ### 3. Plan resource structure
 
-Draft a section outline for the resource note grounded in the topic. For each planned section, map zero-or-more zettels from `candidate_set` to it.
+Draft a section outline for the resource note grounded in the topic.
+For each planned section, map zero-or-more zettels from `candidate_set` to it.
 
 Sections with zero mapped zettels are **gaps**.
 
@@ -111,8 +123,8 @@ If `zettelize first`: return a recommendation containing the gap topics and a su
      - `total_access`: `0`
      - `use_count`: `0`
 3. Body — strict assembly grammar:
-   - `# {Topic}` heading
-   - optional one-paragraph framing sentence that NAMES what the resource collects (e.g. "Curated zettels covering the Indian Attack opening, its principles, and key motifs.") — no factual claims that are not in zettels.
+    - `# {Topic}` heading
+    - optional one-paragraph framing sentence that NAMES what the resource collects (e.g. "Curated zettels covering the Indian Attack opening, its principles, and key motifs.") — no factual claims that are not in zettels.
    - per outline section:
      - `## {Section title}`
      - one optional connective sentence that names what the next zettel block covers (no claims).

@@ -5,9 +5,9 @@ description: "Append a single event to an append-only JSON pipeline or workflow 
 
 # Core Atomic Log
 
-Append exactly one event to an append-only log.
+Append exactly one event to an append-only log while preserving full history.
 
-## Usage
+## Command Usage
 
 `/core-atomic-log {scope-name} {event-type} "{details}"`
 
@@ -21,7 +21,22 @@ Append exactly one event to an append-only log.
 - NEVER silently fix corrupt JSON.
 - NEVER use prose-only logs when a structured log file exists.
 
-## Steps
+## Canonical Path and File Rules
+
+- Canonical log filename is `.otsumi/$1/events.json`.
+- The file content MUST be a valid JSON array `[...]` containing event objects.
+- NEVER write a `.txt` file.
+- NEVER write a single JSON object without the enclosing array.
+- NEVER use `create` mode on a file that already exists; use `edit` or `overwrite` with the full array content.
+- Keep `events.json` as canonical in this architecture.
+- Migration note: old references to `.otsumi/$1/atomic-log.json` should be updated to `.otsumi/$1/events.json`.
+
+## Required Summary Input ($3)
+
+- `$3` is a required meaningful summary string built by the caller from stage output data.
+- It must carry signal, not a timestamp, not a label, and not be empty.
+
+## Primary Flow (6 Steps)
 
 1. Resolve log location: `.otsumi/{scope-name}/events.json` (workflow, pipeline, or generic scope).
 2. If the file does not exist, initialize it as `[]`.
@@ -39,22 +54,7 @@ Append exactly one event to an append-only log.
 5. Write atomically when the host environment supports it.
 6. Return only a compact success or failure message.
 
-## Required Output Format Rules
-
-- Canonical log filename is `.otsumi/$1/events.json`.
-- The file content MUST be a valid JSON array `[...]` containing event objects.
-- NEVER write a `.txt` file.
-- NEVER write a single JSON object without the enclosing array.
-- NEVER use `create` mode on a file that already exists; use `edit` or `overwrite` with the full array content.
-- Keep `events.json` as canonical in this architecture.
-- Migration note: old references to `.otsumi/$1/atomic-log.json` should be updated to `.otsumi/$1/events.json`.
-
-## Required Summary Field
-
-- `$3` is a required meaningful summary string built by the caller from stage output data.
-- It must carry signal, not a timestamp, not a label, not empty.
-
-## Detailed 7-Step Procedure
+## Detailed 7-Step Procedure (Authoritative)
 
 1. **Validate all inputs with exact errors**
    - If `$1` is empty: `Missing feature name. Usage: /core-atomic-log <scope-name> <event> <summary>`
@@ -86,7 +86,7 @@ Append exactly one event to an append-only log.
    - Confirm the content is a JSON array `[...]` with all prior entries preserved.
    - If either check fails: fix it immediately before returning.
 
-## Before/After Append Example
+## Append Semantics (Before/After Example)
 
 Do NOT replace the array. Append to it.
 
@@ -105,6 +105,6 @@ After append:
 ]
 ```
 
-## Silent on Success
+## Success Output Behavior
 
 No output to the user unless an error occurred.

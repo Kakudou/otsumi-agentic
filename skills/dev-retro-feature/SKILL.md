@@ -5,11 +5,18 @@ description: "Reverse-engineer existing code or behavior into feature candidates
 
 # Dev Retro Feature
 
-Recover feature specs from existing implementation — read-only.
+Recover feature specifications from existing implementation in **read-only mode**.
 
 ## Usage
 
 `/dev-retro-feature {path-or-feature-area}`
+
+## Mission
+
+Produce source-grounded reverse-engineering artifacts:
+- `feature_candidates`
+- `gap_report`
+- `draft_specs` (Gherkin-ready, confirmed behavior only)
 
 ## Hard Rules
 
@@ -18,7 +25,7 @@ Recover feature specs from existing implementation — read-only.
 - NEVER claim full coverage when inspected evidence is partial.
 - MUST preserve uncertainty explicitly.
 
-## Steps
+## Execution Steps
 
 1. Inspect provided paths, tests, docs, and project structure.
 2. Identify observable behaviors.
@@ -35,7 +42,7 @@ Recover feature specs from existing implementation — read-only.
 
 ### Phase 1: Source Scan and Feature Boundary Detection
 
-Cluster by observable capability, not file layout.
+Cluster by observable capability, never by file layout alone.
 
 - Identify entry points (public APIs, routes, CLI handlers, event consumers).
 - For each entry point, capture trigger, inputs, observable outcome, and explicit failure behavior.
@@ -60,7 +67,7 @@ When any signal is evidenced, emit an `invariant` feature candidate with:
 
 ### Phase 2: Gap Detection
 
-Detect underspecified behavior before drafting scenarios.
+Detect underspecified behavior before any scenario drafting.
 
 | Gap Type | Detection Signal | Recommendation Strategy |
 |---|---|---|
@@ -151,7 +158,10 @@ draft_specs:
 
 ## Approval Interaction Protocol
 
-Fuhyō executes analysis. Ōshō handles user-visible interaction. Kakugyō orchestrates sequencing.
+Execution ownership:
+- Fuhyō executes analysis
+- Ōshō handles user-visible interaction
+- Kakugyō orchestrates sequencing
 
 ### 1) Boundary approval gate
 
@@ -171,7 +181,9 @@ Gap reporting is mandatory and MUST NOT be suppressed.
 
 ### 3) Per-scenario approval gate
 
-Present one scenario at a time with `source_ref` and confidence. Require explicit approval for each scenario. Silence is not consent.
+Present one scenario at a time with `source_ref` and confidence.
+Require explicit approval for each scenario.
+Silence is not consent.
 
 ### 4) Next-step routing
 

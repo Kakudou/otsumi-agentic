@@ -5,11 +5,15 @@ description: "Generate Python RED tests from approved behavior using pytest-bdd 
 
 # Dev Python Test Generator
 
-Generate Python tests that start RED, from approved behavior, before implementation.
+Generate Python tests that start in RED from approved behavior before implementation.
 
 ## Usage
 
 `/dev-python-test-generator {payload}`
+
+## Mission
+
+Turn approved behavior into failing (RED) Python tests only. Keep tests behavior-anchored, convention-aligned, and ready for later implementation stages.
 
 ## Hard Rules
 
@@ -25,13 +29,17 @@ Generate Python tests that start RED, from approved behavior, before implementat
 | `auto` | Use pytest-bdd when feature files or pytest-bdd conventions exist; otherwise plain pytest |
 | `pytest` | Use plain pytest with `_given/_when/_then` helper organization |
 
-## Steps
+## Execution Sequence (All Modes)
 
 1. Read approved scenarios or behavior contract.
 2. Detect existing test layout.
 3. Generate tests in the appropriate location.
 4. Keep tests behavior-focused.
 5. Return written files and the expected RED reason.
+
+## Output Contract
+
+Return the result object in **Result Schema** format exactly.
 
 ## Mode A Activation (pytest-bdd, Fuhyō execution)
 
@@ -45,15 +53,17 @@ Generate Python tests that start RED, from approved behavior, before implementat
 ### Mode A Rules
 
 - `Then` steps MUST use real assertions.
-- Never use `pass`, `assert True`, or `NotImplementedError` placeholders.
-- Prefer Pydantic `BaseModel` for shared context payloads.
-- Scaffold `conftest.py` fixture stubs for visible external dependencies.
+- NEVER use `pass`, `assert True`, or `NotImplementedError` placeholders.
+- MUST prefer Pydantic `BaseModel` for shared context payloads.
+- MUST scaffold `conftest.py` fixture stubs for visible external dependencies.
 
 ## Mode B Activation (raw pytest helper style, Fuhyō execution)
 
 1. Scan existing test conventions in nearby files (naming patterns, factory usage, fixture style, decorators such as `@pytest.mark.order(N)` and `# noqa: S101`).
 2. Determine placement by mirroring existing `tests/` structure for the affected source area.
 3. Write new tests using the established raw pytest helper style.
+4. Keep inputs and behavior-bound in `_given_*` helpers.
+4. Keep code execution and behavior-bound in `_when_*` helpers.
 4. Keep assertions real and behavior-bound in `_then_*` helpers.
 5. Confirm RED state against current source and capture the concrete failure reason.
 6. Do not modify existing test files; only add new files for this stage.
@@ -61,10 +71,10 @@ Generate Python tests that start RED, from approved behavior, before implementat
 
 ### Mode B Rules
 
-- Real assertions only; no placeholders.
-- Tests must fail RED for the correct reason (wrong behavior, not import error).
-- Match project naming conventions exactly.
-- Define `polyfactory` `ModelFactory` subclasses per-file when that convention exists.
+- MUST use real assertions only; no placeholders.
+- MUST fail RED for the correct reason (wrong behavior, not import error).
+- MUST match project naming conventions exactly.
+- MUST define `polyfactory` `ModelFactory` subclasses per-file when that convention exists.
 
 ## Conftest Scaffolding Guidance
 
@@ -84,3 +94,9 @@ tests_collected: <number of generated test functions>
 red_reason: <why tests fail now>
 red_confirmed: true | false
 ```
+
+## Completion Criteria
+
+- Tests are newly created (no edits to existing tests for this stage).
+- RED state is real and explicitly explained.
+- Report uses the exact schema above.

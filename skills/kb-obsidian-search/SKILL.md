@@ -6,7 +6,15 @@ interaction_model: single-shot
 
 # KB Obsidian Search
 
-Retrieve matching zettels from a vault's `zettel_root` using one or more of four complementary retrieval strategies: semantic body query, tag intersection, temporal date range, or title/alias fuzzy match. This skill is the **retrieval primitive** for the entire kb-obsidian family — it provides the shared lookup capability that kb-obsidian-assemble, kb-obsidian-zettelize, and future skills consume rather than re-implement. It is immutably read-only: no vault file is ever written, updated, or deleted, under any condition or argument combination.
+Retrieve matching zettels from a vault `zettel_root` using one or more retrieval modes:
+- semantic body query
+- tag intersection
+- temporal date range
+- title/alias fuzzy match
+
+This skill is the **retrieval primitive** for the kb-obsidian family. kb-obsidian-assemble, kb-obsidian-zettelize, and future skills SHOULD consume this ranked lookup output instead of re-implementing discovery logic.
+
+Immutability contract: no vault file is ever created, renamed, moved, or deleted. The only allowed mutation is mandatory `total_access` increment on returned zettels.
 
 ## Usage
 
@@ -20,7 +28,7 @@ Retrieve matching zettels from a vault's `zettel_root` using one or more of four
 
 Retrieval modes may be combined: when multiple flags are present, each mode fires independently and results are merged with per-mode reasoning before final ranking.
 
-## Hard Rules
+## Hard Rules (Non-Negotiable)
 
 - MUST resolve `zettel_root` and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any vault path.
 - MUST read the actual `zettel_template` file to learn the canonical frontmatter field names and casing before parsing any zettel. Field names MUST be read from the template, NEVER guessed.
@@ -33,7 +41,7 @@ Retrieval modes may be combined: when multiple flags are present, each mode fire
 - MUST surface an explicit error and refuse to proceed if `--temporal` range is malformed (not `YYYY-MM-DD..YYYY-MM-DD`) or if start > end.
 - MUST surface a clear warning when the query matches zero zettels across all active retrieval modes. NEVER silently return an empty list without a diagnostic.
 
-## Steps
+## Execution Steps
 
 ### 1. Resolve target vault
 
@@ -94,7 +102,7 @@ If `total_access` is absent from a zettel's frontmatter, add it with value `1`. 
 
 ### 6. Report
 
-Return, in order:
+Return in this order:
 
 - **Query summary**: which vault, which modes were active, any applied flags (`--tags`, `--temporal`, `--lang`, `--limit`).
 - **Ranked result list**: the `match_record` for each matched zettel (path, title, per-mode reasoning). If `--limit` was applied, note how many were omitted.
@@ -104,7 +112,7 @@ Return, in order:
 
 > **Architectural note for skill authors**: kb-obsidian-assemble Step 2 (Discover candidate zettels) re-implements scoring logic that is now canonically owned by this skill. Skills that need zettel discovery SHOULD call kb-obsidian-search and consume its ranked result list rather than re-implementing title/tag/body scoring internally. The match_record format is the stable interchange contract.
 
-## Validation
+## Validation Checklist
 
 Before claiming success:
 

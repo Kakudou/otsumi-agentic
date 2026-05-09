@@ -6,37 +6,53 @@ interaction_model: multi-turn
 
 # KB Obsidian Archive
 
-Mark vault notes as `archived`, `superseded`, or `deprecated` by writing lifecycle-status fields into their frontmatter. Archive is the lifecycle counterpart to creation (`kb-obsidian-zettelize`) and curation (`kb-obsidian-assemble`) — it handles what happens when knowledge becomes stale, duplicated, or no longer relevant. Every status change is individually human-gated; no bulk-apply is possible without per-file confirmation. The skill never deletes any file. Physical relocation of a note is an optional, separate step and requires that all inbound wikilinks be resolved first.
+Mark vault notes as `archived`, `superseded`, or `deprecated` by writing lifecycle-status fields into frontmatter.
+
+This skill is the lifecycle counterpart to:
+- creation (`kb-obsidian-zettelize`)
+- curation (`kb-obsidian-assemble`)
+
+Use it when knowledge becomes stale, duplicated, or no longer relevant.
+
+Core guarantees:
+- every status change is individually human-gated
+- no bulk apply without per-file confirmation
+- no file deletion
+- physical relocation is optional, separate, and blocked until inbound wikilinks are resolved
 
 ## Usage
 
-- `/kb-obsidian-archive {zettel-path} --status archived` — mark a zettel as archived; no replacement pointer needed.
-- `/kb-obsidian-archive {zettel-path} --status superseded --by "[[replacement-title]]"` — mark as superseded with a navigable `Superseded-by:` wikilink.
-- `/kb-obsidian-archive {zettel-path} --status deprecated` — mark as deprecated; content is known to be inaccurate or outdated but no replacement exists yet.
-- `/kb-obsidian-archive {zettel-path} --move {target-dir}` — after applying a lifecycle status, also physically move the file to `{target-dir}`. Requires all inbound wikilinks to be updated or the move is refused.
-- `/kb-obsidian-archive --bulk {tag-filter}` — find all notes matching `{tag-filter}`, present each for individual lifecycle-status approval. NEVER applies changes in bulk without per-file confirmation.
-- `/kb-obsidian-archive {vault-id} {zettel-path} --status archived` — scope to a named vault entry defined in `system.md`.
-- `/kb-obsidian-archive --dry-run {zettel-path} --status {status}` — show what would change without writing any file.
+| Command | Purpose |
+|---|---|
+| `/kb-obsidian-archive {zettel-path} --status archived` | Mark a zettel as archived; no replacement pointer needed. |
+| `/kb-obsidian-archive {zettel-path} --status superseded --by "[[replacement-title]]"` | Mark as superseded with a navigable `Superseded-by:` wikilink. |
+| `/kb-obsidian-archive {zettel-path} --status deprecated` | Mark as deprecated; content is inaccurate/outdated and no replacement exists yet. |
+| `/kb-obsidian-archive {zettel-path} --move {target-dir}` | After applying a lifecycle status, also physically move to `{target-dir}`. Requires inbound wikilinks to be updated or the move is refused. |
+| `/kb-obsidian-archive --bulk {tag-filter}` | Find notes matching `{tag-filter}`, then present each for individual lifecycle-status approval. NEVER applies changes in bulk without per-file confirmation. |
+| `/kb-obsidian-archive {vault-id} {zettel-path} --status archived` | Scope to a named vault entry defined in `system.md`. |
+| `/kb-obsidian-archive --dry-run {zettel-path} --status {status}` | Show what would change without writing any file. |
 
 ## Hard Rules
 
-- MUST resolve all vault paths (`zettel_root`, `resources_root`, `zettel_template`) from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any path.
-- MUST read `zettel_template` before modifying any note's frontmatter, to confirm field casing, date format (`YYYY/MM/DD HH:mm:ss`), and existing field names. Status fields (`Status:`, `Superseded-by:`) are ADDED to the note — existing template fields are not reordered or removed.
-- MUST require individual human approval for every file whose status would change. NEVER apply status changes to multiple files in a single unconfirmed batch.
-- MUST perform a cross-reference update pass: after marking a note, scan the vault for inbound wikilinks pointing to the now-marked note. Surface all referencing files to the user and offer the choices defined in Step 6. NEVER silently leave stale inbound links unaddressed.
-- MUST write frontmatter modifications atomically — write to a temp file in the same directory, then rename to the final path. NEVER write directly to the live file.
-- MUST increment `total_access` for each zettel read when checking or changing its status. NEVER increment `use_count` — archiving is lifecycle management, not productive content use.
-- MUST update `Modification Date` when writing lifecycle-status fields. NEVER modify `Creation Date` for any reason.
-- MUST emit a submodule write disclosure whenever the target file resolves under a directory listed as a submodule in the vault's safety caveats (`100-Personal/`, `600-Workspace/`, `4242-Otsumi/`).
-- ARCHIVE NEVER DELETES FILES. Status is recorded via frontmatter. Physical move is optional, separately gated, and requires full inbound-wikilink resolution before the move executes.
-- NEVER `git add`, `git commit`, or `git push`.
-- NEVER modify files outside the target vault's absolute path.
-- NEVER apply `--move` if any inbound wikilink pointing to the note cannot be updated — refuse and report which referencing files block the move.
-- NEVER invent a `Superseded-by:` target. The replacement wikilink MUST be user-supplied via `--by`.
+1. MUST resolve all vault paths (`zettel_root`, `resources_root`, `zettel_template`) from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any path.
+2. MUST read `zettel_template` before modifying any note's frontmatter, to confirm field casing, date format (`YYYY/MM/DD HH:mm:ss`), and existing field names. Status fields (`Status:`, `Superseded-by:`) are ADDED to the note — existing template fields are not reordered or removed.
+3. MUST require individual human approval for every file whose status would change. NEVER apply status changes to multiple files in a single unconfirmed batch.
+4. MUST perform a cross-reference update pass: after marking a note, scan the vault for inbound wikilinks pointing to the now-marked note. Surface all referencing files to the user and offer the choices defined in Step 6. NEVER silently leave stale inbound links unaddressed.
+5. MUST write frontmatter modifications atomically — write to a temp file in the same directory, then rename to the final path. NEVER write directly to the live file.
+6. MUST increment `total_access` for each zettel read when checking or changing its status. NEVER increment `use_count` — archiving is lifecycle management, not productive content use.
+7. MUST update `Modification Date` when writing lifecycle-status fields. NEVER modify `Creation Date` for any reason.
+8. MUST emit a submodule write disclosure whenever the target file resolves under a directory listed as a submodule in the vault's safety caveats (`100-Personal/`, `600-Workspace/`, `4242-Otsumi/`).
+9. ARCHIVE NEVER DELETES FILES. Status is recorded via frontmatter. Physical move is optional, separately gated, and requires full inbound-wikilink resolution before the move executes.
+10. NEVER `git add`, `git commit`, or `git push`.
+11. NEVER modify files outside the target vault's absolute path.
+12. NEVER apply `--move` if any inbound wikilink pointing to the note cannot be updated — refuse and report which referencing files block the move.
+13. NEVER invent a `Superseded-by:` target. The replacement wikilink MUST be user-supplied via `--by`.
 
 ## Steps
 
 ### 1. Resolve target vault
+
+Execute in order:
 
 1. Read `system.md` → `## Knowledge Bases` → vault entry (by `{vault-id}` or default).
 2. Extract `zettel_root`, `resources_root`, `zettel_template`, and all safety caveats.

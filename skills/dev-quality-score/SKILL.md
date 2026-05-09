@@ -5,11 +5,21 @@ description: "Score final output using evidence and thresholds, producing CLOSED
 
 # Dev Quality Score
 
-Aggregate quality evidence into an evidence-backed final verdict — no vibes.
+Aggregate Stage-7 quality evidence into an evidence-backed final verdict. No vibes, no averaging tricks, no unsupported conclusions.
 
 ## Usage
 
 `/dev-quality-score {feature-name}`
+
+## Mission
+
+Produce a deterministic closure decision from concrete evidence:
+
+- `CLOSED`
+- `REMEDIATION REQUIRED`
+- `ESCALATED`
+
+Your scoring is gatekeeping logic, not advisory prose.
 
 ## Hard Rules
 
@@ -29,7 +39,7 @@ Aggregate quality evidence into an evidence-backed final verdict — no vibes.
 - test_quality
 - docs_quality
 
-Default threshold: every dimension MUST be at least 4/5 unless the workflow defines otherwise.
+Default threshold: every dimension MUST be at least **4/5** unless the workflow defines otherwise.
 
 ## Scoring Rubric (1-5 Named Scale)
 
@@ -63,6 +73,15 @@ It does **NOT** mean final Stage-8 docs. Stage-8 happens after a CLOSED verdict.
 4. Confirm Stage-7 exists in pipeline stages before scoring.
 5. `dev-expert-code-review` is additional high-signal evidence, never a replacement for tool-backed checks.
 
+## Scoring Procedure (Required Order)
+
+1. Validate Stage-7 is present in the active pipeline stages.
+2. Collect tool evidence (`dev-quality-check`) for tool-backed dimensions.
+3. Collect review evidence (`dev-delivery-review`, `dev-expert-code-review`, changed files) for review-backed dimensions.
+4. Score every default dimension on the 1–5 rubric with citation-backed notes.
+5. Apply threshold logic dimension-by-dimension (never by average).
+6. Emit verdict and remediation routing based on failing dimensions and remediation-cycle state.
+
 ## Language Tool Defaults
 
 - `python`
@@ -87,7 +106,7 @@ It does **NOT** mean final Stage-8 docs. Stage-8 happens after a CLOSED verdict.
 | `test_quality` | Fuhyō executes via `dev-python-test-generator` and re-runs Stage-3 |
 | `docs_quality` | Fuhyō executes via `doc-decision-record` |
 
-## Output
+## Output (Required JSON)
 
 ```json
 {
@@ -101,7 +120,7 @@ It does **NOT** mean final Stage-8 docs. Stage-8 happens after a CLOSED verdict.
 }
 ```
 
-## Stage-07 Result Schema (canonical)
+## Stage-07 Result Schema (Canonical)
 
 Return a result object containing:
 
@@ -121,3 +140,9 @@ Return a result object containing:
 ## Additional Hard Rule
 
 - Never treat post-close Stage-8 docs as a Stage-7 closure prerequisite.
+
+## Failure Handling Constraints
+
+- If evidence is missing for any scored claim, stop and return a non-closure outcome with explicit evidence gaps.
+- If any blocking dimension is below threshold, closure is disallowed regardless of strengths elsewhere.
+- If remediation cycles are exhausted, verdict MUST be `ESCALATED`.

@@ -5,7 +5,7 @@
 - Multi-agent harness for Markdown-driven AI CLIs. Native on Claude Code; small adapter shim for Copilot CLI and OpenCode. No SDK, no runtime, no lock-in.
 - Architecture is shogi: eight role-bound agents, the King talks to you, the Bishop plans, six specialists execute.
 - Each specialist owns exactly one concern: requirements, validation, writing, evidence, atomic execution, challenge.
-- 38 stateless skills, domain-prefixed (`agent-`, `core-`, `flow-`, `dev-`, `dev-python-`, `design-`, `doc-`, `git-`, `kb-`); invocable standalone or chained inside a workflow.
+- 45 stateless skills, domain-prefixed (`agent-`, `core-`, `flow-`, `dev-`, `dev-python-`, `design-`, `doc-`, `git-`, `kb-`); invocable standalone or chained inside a workflow.
 - BDD delivery workflow loads on demand. Assisted mode hands off implementation; vibecoding mode automates everything except approval gates.
 - Every closed feature leaves Gherkin specs, RED tests, ADRs, scorecards, and append-only event logs in `.otsumi/{feature-name}/`.
 - Drift guardrails baked into every agent file. When behavior leaves scope, it routes out instead of bleeding.
@@ -13,23 +13,78 @@
 
 > *"Checkmate isn't a move. It's a verdict."*
 
-A multi-agent harness that turns any Markdown-driven AI CLI into a disciplined, role-separated execution board. The metaphor is **shogi** (Japanese chess). Each piece has one job. The King talks to you, the Bishop plans, the pieces around them execute. Nothing pretends to be something it isn't.
+A multi-agent harness that turns any Markdown-driven AI CLI into a disciplined, role-separated execution board.
+The metaphor is **shogi** (Japanese chess). Each piece has one job. The King talks to you, the Bishop plans,
+the pieces around them execute. Nothing pretends to be something it isn't.
 
-Native fit for **Claude Code**. Adapted for **Copilot CLI** and **OpenCode** via small instruction shims (see `instructions/`). No SDK, no runtime, plain Markdown all the way down.
+Most AI coding stacks collapse everything into one agent that does everything badly. Otsumi splits work
+along role boundaries that don't blur: one agent talks to you, one plans, and six specialists each own
+exactly one concern. When you need a casual answer, you get one. When you need disciplined feature delivery,
+the BDD workflow loads and the board organizes around it. When you need research, prompt refinement, skill
+creation, or code review, there's a workflow or a skill for it.
+
+Native fit for **Claude Code**. Adapted for **Copilot CLI** and **OpenCode** via small instruction shims in
+`instructions/`. No SDK, no runtime, plain Markdown all the way down.
 
 ---
 
-## What This Is
+## Getting Started
 
-Most AI coding stacks collapse everything into one agent that does everything badly. Otsumi splits the work along role boundaries that don't blur:
+Clone once, symlink into your tool's config directory, and run.
 
-- **One agent talks to the user.** Only one. The rest are hidden.
-- **One agent plans the work.** It returns a plan and shuts up.
-- **Specialists do the work.** Each owns exactly one concern: requirements, evidence, writing, validation, atomic execution, challenge.
+### 1. Clone
 
-When you need a casual answer, you get one. When you need disciplined feature delivery, the BDD workflow loads and the board organizes around it. When you need anything else (research, prompt refinement, skill creation, code review), there's a workflow or a skill for it.
+```bash
+git clone https://github.com/Kakudou/otsumi-agentic.git ~/.otsumi
+```
 
-It's not a vibe-and-ship wrapper. It's a precision instrument that happens to be your general-purpose ally.
+### 2. Symlink
+
+Two surfaces do separate jobs. `system.md` is the short, role-agnostic context loaded for every agent
+invocation; symlink it as your tool's global instruction file. `skills/agent-load-persona/SKILL.md` is the
+full Ōshō voice manual, packaged as a skill and loaded by Ōshō on session start via `/agent-load-persona`.
+
+**Claude Code**
+
+```bash
+ln -s ~/.otsumi/system.md   ~/.claude/CLAUDE.md
+ln -s ~/.otsumi/agents      ~/.claude/agents
+ln -s ~/.otsumi/skills      ~/.claude/skills
+```
+
+**Copilot CLI** (also needs `instructions/copilot-subagent.md` for delegation)
+
+```bash
+ln -s ~/.otsumi/system.md   ~/.copilot/copilot-instructions.md
+ln -s ~/.otsumi/agents      ~/.copilot/agents
+ln -s ~/.otsumi/skills      ~/.copilot/skills
+ln -s ~/.otsumi/instructions/copilot-subagent.md  ~/.copilot/copilot-subagent.md
+```
+
+**OpenCode**
+
+```bash
+ln -s ~/.otsumi/system.md   ~/.config/opencode/AGENTS.md
+ln -s ~/.otsumi/agents      ~/.config/opencode/agents
+ln -s ~/.otsumi/skills      ~/.config/opencode/skills
+```
+
+### 3. Run
+
+Open a project in your AI CLI. Ōshō is live. She answers to "Otsumi."
+
+For Copilot CLI specifically:
+
+```bash
+copilot --allow-all-tools
+```
+
+The `--allow-all-tools` flag enables the `task` tool used to spawn subagents. Required for the orchestration
+loop. If you'd rather pin the toolset per-agent in frontmatter, you can, but you lose plug-and-play
+portability across tools.
+
+> **Key insight:** the entire system is plain Markdown. No SDK, no runtime, no lock-in. Claude Code runs it
+> natively; other AI CLIs need a small adapter file from `instructions/`.
 
 ---
 
@@ -48,41 +103,21 @@ Eight shogi pieces. Each is an agent file in `agents/`. Each owns one role and r
 | 歩兵 Pawn | **Fuhyō** (`fuhyo`) | Atomic execution. One bounded task per invocation, explicit input, explicit output. Refuses anything that requires strategy. |
 | 桂馬 Knight | **Keima** (`keima`) | Constructive challenger. Finite critique loops on plans and outputs: blind spots, alternatives, simplifications. Caps itself; never spirals into infinite debate. |
 
-The traffic always flows the same way:
+Traffic always flows the same way:
 
 ```
 user → Ōshō → prompt-master refinement → Kakugyō plan → Ōshō invokes specialists → Ōshō synthesizes → user
 ```
 
-Every actionable request goes through Kakugyō first. No specialist talks to the user. No specialist invokes another specialist. The board stays clean.
+Every actionable request goes through Kakugyō first. No specialist talks to the user. No specialist invokes
+another specialist. The board stays clean.
 
 ---
 
-## Skills
+## Delivering a Feature
 
-Skills are stateless capability units invoked as `/skill-name`. They live in `skills/{skill-name}/SKILL.md`. Names are domain-prefixed for grep-ability.
-
-| Domain | Examples |
-|---|---|
-| `agent-` | Prompt refinement, retrospective analysis, skill generation |
-| `core-` | Workflow utilities: atomic logs, status, backlog, command recovery |
-| `flow-` | Pipeline lifecycle: start, continue, complete, abort, replay, diff |
-| `dev-` | Software delivery: BDD workflow, env setup, test runs, quality checks, reviews |
-| `dev-python-` | Python adapters: test generator, implementer, refactorer |
-| `design-` | Visual/frontend design direction |
-| `doc-` | Documentation, editorial refactor, decision records, Excalidraw |
-| `git-` | Local git hygiene |
-| `kb-` | Knowledge base / second-brain: vault capture, zettelization, assembly, graph config |
-
-Full index: [`skills/REGISTRY.md`](skills/REGISTRY.md).
-
-Skills can run standalone, or be chained inside a workflow. None of them know about the agent layer.
-
----
-
-## The BDD Workflow
-
-When the request is "deliver this feature properly," Kakugyō selects the BDD delivery workflow. Eight stages. No silent skips.
+When the request is "deliver this feature properly," Kakugyō selects the BDD delivery workflow. Eight stages,
+no silent skips.
 
 | Stage | Skill | What Happens |
 |---|---|---|
@@ -125,105 +160,137 @@ You own approvals and architectural intent. Otsumi owns the rest.
 
 ---
 
-## Install
+## Skills
 
-Native on Claude Code. Other AI CLIs (Copilot CLI, OpenCode) need a small instruction shim from `instructions/` to handle subagent delegation. Clone once, symlink into your tool's config directory.
+Skills are stateless capability units invoked as `/skill-name`. They live in `skills/{skill-name}/SKILL.md`.
+Names are domain-prefixed for grep-ability. Skills run standalone or chain inside a workflow. None of them
+know about the agent layer.
 
-Two surfaces do separate jobs:
+Full index: [`skills/REGISTRY.md`](skills/REGISTRY.md).
 
-- `system.md`: short, role-agnostic system context loaded for every agent invocation. Symlink this as your tool's global instruction file.
-- `skills/agent-load-persona/SKILL.md`: the full Otsumi voice manual, packaged as a skill. Loaded by Ōshō on session start via `/agent-load-persona`. No path discovery, no `view` — the harness resolves it.
+### agent- Skills
 
-### 1. Clone
+The agent- family covers prompt refinement, retrospective analysis, and skill crystallization. Three of the
+four skills chain into the Prompt Triad: retro finds friction, prompt-master forges it, create-skill saves
+it. The fourth loads the Ōshō persona on session start.
 
-```bash
-git clone https://github.com/Kakudou/otsumi-agentic.git ~/.otsumi
-```
+| Skill | What it does |
+|---|---|
+| `/agent-retro-prompt` | Reviews a completed pipeline, task, or conversation. Extracts grounded friction and returns a better starting prompt. No hypothetical advice: only friction paid for in real rework. |
+| `/prompt-master` | Forges a rough idea into a production-ready prompt for any target tool: Claude, GPT, Gemini, Cursor, Copilot, Midjourney, Sora, ElevenLabs. Activates only on explicit prompt-engineering requests. |
+| `/agent-create-skill` | Chains agent-retro-prompt then prompt-master, then crystallizes the output into a durable SKILL.md. One invocation, one new reusable skill. |
+| `/agent-load-persona` | Loads the project-specific Ōshō voice manual on session start. Not portable across projects without a rewrite. |
 
-### 2. Symlink
+See [The Prompt Triad](#the-prompt-triad) for the full chain workflow.
 
-**Claude Code**
+### core- Skills
 
-```bash
-ln -s ~/.otsumi/system.md   ~/.claude/CLAUDE.md
-ln -s ~/.otsumi/agents      ~/.claude/agents
-ln -s ~/.otsumi/skills      ~/.claude/skills
-```
+The core- family provides infrastructure primitives: append-only log writes, status reads, plan validation,
+backlog listing, and command recovery. Flow- and dev- workflows depend on these.
 
-**Copilot CLI** (also needs `instructions/copilot-subagent.md` for delegation)
+| Skill | What it does |
+|---|---|
+| `/core-atomic-log` | Appends a single event to an append-only JSON log without corrupting history. The write primitive all workflow logging depends on. |
+| `/core-backlog` | Lists planned feature or task records produced by workflow escalation. Read-only; never starts anything automatically. |
+| `/core-fix-command` | Resolves command or skill lookup mismatches. Returns the likely intended command with a safe correction. |
+| `/core-plan-lint` | Validates a Kakugyō plan against atomicity, dependency semantics, parallel group safety, blocker vocabulary, and shogi-roster discipline. Returns pass/fail with violations and decomposition suggestions. |
+| `/core-status` | Displays current status for one workflow/pipeline, or summarizes all workflow state roots. Run this first when resuming interrupted work. |
 
-```bash
-ln -s ~/.otsumi/system.md   ~/.copilot/copilot-instructions.md
-ln -s ~/.otsumi/agents      ~/.copilot/agents
-ln -s ~/.otsumi/skills      ~/.copilot/skills
-ln -s ~/.otsumi/instructions/copilot-subagent.md  ~/.copilot/copilot-subagent.md
-```
+### flow- Skills
 
-**OpenCode**
+The flow- family manages pipeline lifecycle. Every BDD pipeline runs on these primitives. Use them to start,
+advance, pause, resume, replay, or inspect any workflow stage.
 
-```bash
-ln -s ~/.otsumi/system.md   ~/.config/opencode/AGENTS.md
-ln -s ~/.otsumi/agents      ~/.config/opencode/agents
-ln -s ~/.otsumi/skills      ~/.config/opencode/skills
-```
+| Skill | What it does |
+|---|---|
+| `/flow-start-pipeline` | Starts one or more explicit workflow pipelines. Accepts mode, language, test style, stages, state root, and routing selectors. |
+| `/flow-continue` | Resumes a paused pipeline. Validates any user-owned implementation or refactor work before advancing. |
+| `/flow-complete-stage` | Finalizes a workflow stage: updates state, logs completion, resolves the next active stage, and applies pause/close behavior. |
+| `/flow-abort` | Aborts a running or paused pipeline safely. Preserves artifacts and records the reason. |
+| `/flow-replay` | Replays a closed or aborted pipeline from a selected stage. Preserves upstream artifacts. Requires overwrite confirmation. |
+| `/flow-diff-stage` | Shows the artifacts and file changes associated with one stage output. |
 
-### 3. Run
-
-Open a project in your AI CLI. Ōshō is live. She answers to "Otsumi."
-
-For Copilot CLI specifically:
-
-```bash
-copilot --allow-all-tools
-```
-
-The `--allow-all-tools` flag enables the `task` tool used to spawn subagents. Required for the orchestration loop. If you'd rather pin the toolset per-agent in frontmatter, you can, but you lose plug-and-play portability across tools.
-
-> **Key insight:** the entire system is plain Markdown. No SDK, no runtime, no lock-in. Claude Code runs it natively; other AI CLIs need a small adapter file from `instructions/`.
-
----
-
-## Customization
-
-| What | Where | How |
-|---|---|---|
-| System context (every agent) | `system.md` | Keep lean. Loaded for every invocation. Add hard floors that apply to all roles. |
-| Ōshō voice | `skills/agent-load-persona/SKILL.md` | Rewrite to taste. Loaded by Ōshō on session start via `/agent-load-persona`, NOT by specialists. |
-| Agent role | `agents/{name}.md` | Tweak input/output contracts, drift guardrails, hard rules. |
-| Workflow stages | `skills/dev-bdd-workflow/SKILL.md` | Change the stage table, the routing skills, the remediation policy. |
-| New language | Add `dev-{lang}-test-generator`, `dev-{lang}-implementer`, `dev-{lang}-refactorer` skills. Update `dev-stage-router` routing table. Add detection rules in `dev-env-setup`. | The board doesn't change. Only adapters do. |
-| New skill | `skills/{name}/SKILL.md` | Follow the canonical layout. Or use `/agent-create-skill` to distill one from completed work. |
-| Triage tiers | `agents/osho.md` (Request Triage section) | Adjust what counts as Tier 0/1/2. Default to escalation, never downgrade on doubt. |
-
----
-
-## What Gets Left Behind
-
-Every closed feature leaves a trail in `.otsumi/{feature-name}/`:
+**Common workflows**
 
 ```
-pipeline.json          ← routing selectors, mode, status, timestamps
-stage-01-output.json   ← approved scenarios
-stage-02-output.json   ← trap analysis summary
-stage-03-output.json   ← RED test confirmation
-stage-04-output.json   ← implementation summary
-stage-05-output.json   ← refactor summary
-stage-06-output.json   ← decisions or explicit no-record reasoning
-stage-07-output.json   ← scorecard, dimensions, remediation history
-stage-08-output.json   ← documentation written
-events.json            ← append-only event log: every action, timestamped
+# Start a new pipeline
+/flow-start-pipeline --mode vibecoding --lang python "feature name"
+
+# Check pipeline state
+/core-status
+
+# Resume after a pause gate
+/flow-continue feature-name
+
+# Inspect what a stage produced
+/flow-diff-stage feature-name --stage 3
+
+# Abort safely
+/flow-abort feature-name
 ```
 
-And in the project itself:
+### dev- Skills
 
-```
-features/{feature-name}.feature   ← the approved spec
-tests/                            ← the test suite
-src/                              ← the implementation
-docs/decisions/                   ← ADR + TDR records
-```
+The dev- family covers the full software delivery lifecycle: behavior specs, environment setup, test
+execution, quality checks, code review, and documentation. Twelve skills total. [Delivering a Feature](#delivering-a-feature)
+documents how they chain in stage order. Use them standalone for targeted review and inspection outside a
+full pipeline.
 
-Nothing is invented. Every artifact is earned.
+| Skill | What it does |
+|---|---|
+| `/dev-bdd-gherkin` | Writes Gherkin behavior specs with user approval gates. Second pass runs adversarial trap analysis: boundaries, auth gaps, concurrency, ambiguous terms. Traps promoted to scenarios only after approval. |
+| `/dev-bdd-workflow` | The full BDD delivery workflow doctrine: specification, traps, RED tests, minimal implementation, refactor, decisions, quality score, docs. Eight stages, no silent skips. |
+| `/dev-stage-router` | Routes language-bound delivery stages (S3 through S5) to the correct language adapter skill. |
+| `/dev-env-setup` | Prepares and verifies the development runtime for a selected language and project. Does not silently rewrite project architecture. |
+| `/dev-run-tests` | Runs the project test suite or a selected subset. Reports RED/GREEN state with counts and failures. |
+| `/dev-quality-check` | Tool-backed quality checks: linting, formatting, import hygiene, type safety. |
+| `/dev-quality-score` | Scores output using evidence and thresholds. Produces CLOSED, REMEDIATION REQUIRED, or ESCALATED verdicts. |
+| `/dev-delivery-review` | Reviews delivery quality across architecture, maintainability, tests, documentation readiness, and scope discipline. |
+| `/dev-expert-code-review` | Deep expert code review with concrete findings, risk levels, and scorecard evidence. |
+| `/dev-retro-feature` | Reverse-engineers existing code or behavior into feature candidates, gap reports, and Gherkin-ready specs. Never mutates source. |
+| `/dev-github-issue-safe-fix` | Handles a GitHub issue by ID through the BDD workflow. Includes issue verification, test-suite convention scanning, prompt refinement, and user-selected pipeline mode. No commit or push. |
+| `/dev-opencti-create-connector` | Scaffolds a production-grade OpenCTI external-import connector: typed settings, API client, STIX mapping, state management, tests, docs. |
+
+### dev-python- Skills
+
+Python-specific language adapters for BDD stages S3 through S5. Routed automatically by `/dev-stage-router`
+when `--lang python` is specified. Use them standalone to run a single stage without a full pipeline.
+
+| Skill | What it does |
+|---|---|
+| `/dev-python-test-generator` | Generates RED tests from approved behavior using pytest-bdd or plain pytest helper style depending on project conventions. |
+| `/dev-python-implementer` | Implements the smallest Python code needed to make approved tests pass. No gold plating. |
+| `/dev-python-refactorer` | Performs safe, atomic, behavior-preserving Python refactors. Runs tests after every change. RED rolls back. |
+
+### design- Skills
+
+| Skill | What it does |
+|---|---|
+| `/design-frontend` | Creates production-grade frontend interfaces with strong design direction. Anti-slop constraints built in. |
+
+### doc- Skills
+
+The doc- family covers the documentation lifecycle: generate from artifacts, record decisions, refactor prose,
+and produce visual diagrams. All four write from real evidence; none invent behavior.
+
+| Skill | What it does |
+|---|---|
+| `/doc-writer` | Generates human-facing documentation from real artifacts only. Never invents behavior or summarizes what didn't happen. |
+| `/doc-decision-record` | Creates ADR/TDR records or explicit no-record reasoning, grounded in actual implementation and workflow evidence. |
+| `/doc-editorial-refactor` | Rewrites Markdown with sharp editorial voice, TL;DR, clean typography, and zero em dashes. Preserves all technical blocks unchanged. |
+| `/doc-stylish-excalidraw` | Creates Excalidraw diagrams and document-layout boards with cyberpunk-terminal styling and real bound-arrow semantics. |
+
+### git- Skills
+
+| Skill | What it does |
+|---|---|
+| `/git-commits` | Creates safe local atomic commits. Focused diffs, short one-line messages, gitmoji discipline. No pushes. |
+
+### kb- Skills
+
+Nine skills for personal knowledge management in Obsidian vaults. Vault paths resolve from `system.md`;
+nothing is hardcoded. See [The kb-obsidian Skill Ecosystem](#the-kb-obsidian-skill-ecosystem) for the full
+pipeline, support layer, usage score tracking, common workflows, and family reference table.
 
 ---
 
@@ -231,9 +298,12 @@ Nothing is invented. Every artifact is earned.
 
 Three skills that chain into a learning loop:
 
-- **`/agent-retro-prompt`** is the **observer**. It looks at what actually happened and extracts grounded friction. No hypothetical advice, only friction paid for in real rework.
-- **`/prompt-master`** is the **weaponizer**. It forges a rough idea into a production-ready prompt for any target tool: Claude, GPT, Gemini, Cursor, Copilot, Midjourney, Sora, ElevenLabs, the lot.
-- **`/agent-create-skill`** is the **crystallizer**. It chains the two and reshapes the output into a durable `SKILL.md`.
+- **`/agent-retro-prompt`** is the **observer**. It looks at what actually happened and extracts grounded
+  friction. No hypothetical advice, only friction paid for in real rework.
+- **`/prompt-master`** is the **weaponizer**. It forges a rough idea into a production-ready prompt for any
+  target tool: Claude, GPT, Gemini, Cursor, Copilot, Midjourney, Sora, ElevenLabs, the lot.
+- **`/agent-create-skill`** is the **crystallizer**. It chains the two and reshapes the output into a
+  durable `SKILL.md`.
 
 ```
 retro-prompt   →  plain language friction + improved prompt
@@ -243,40 +313,23 @@ prompt-master  →  production-ready prompt for the target tool
 create-skill   →  SKILL.md with usage, hard rules, steps
 ```
 
-The friction is paid once. The learning is permanent. Knowledge that would die with the conversation gets crystallized into reusable automation.
-
----
-
-## The Knowledge Metabolism
-
-Four skills that chain into a second brain:
-
-- **`/kb-obsidian-remember`** is the **intake**. Raw capture, byte-for-byte, no opinion. Drops anything into the raw inbox with an epoch filename and gets out of the way.
-- **`/kb-obsidian-zettelize`** is the **atomizer**. Decomposes any source into atomic Zettelkasten notes — one idea per file. Deduplicates against what already exists; updates instead of duplicating.
-- **`/kb-obsidian-assemble`** is the **curator**. Synthesizes existing zettels into a topical resource by linking and embedding. Librarian, not writer — surfaces gaps instead of filling them.
-- **`/kb-obsidian-config`** is the **lens**. Configures the graph view — colors, forces, search — so you can see what the other three built.
-
-```
-remember    →  raw content in the inbox, untouched
-    ↓
-zettelize   →  atomic notes, deduplicated, linked
-    ↓
-assemble    →  topical resource, synthesized from zettels
-    ↓
-config      →  graph view tuned to surface the structure
-```
-
-The intake is cheap. The knowledge compounds.
+The friction is paid once. The learning is permanent. Knowledge that would die with the conversation gets
+crystallized into reusable automation.
 
 ---
 
 ## The kb-obsidian Skill Ecosystem
 
-Nine skills for managing personal knowledge in Obsidian vaults. All of them resolve vault paths from `system.md` — nothing is hardcoded. All refuse git operations. All skills that write content require human approval before committing anything to the vault.
+Nine skills for managing personal knowledge in Obsidian vaults. Four form the main pipeline: `remember` is
+the intake (raw capture, byte-for-byte, no opinion), `zettelize` is the atomizer (one idea per file,
+deduplicated), `assemble` is the curator (topical synthesis, not generation), and `write` turns vault
+knowledge into polished prose. Five more handle retrieval, health, logging, archival, and graph
+configuration. All paths resolve from `system.md`; nothing is hardcoded. All refuse git operations. All
+write operations require human approval before committing anything to the vault.
+
+The intake is cheap. The knowledge compounds.
 
 ### The Knowledge Pipeline
-
-Raw content moves through three transformation stages before becoming polished output:
 
 ```
 Raw content → remember → zettelize → assemble → write → doc-writer
@@ -287,7 +340,7 @@ Raw content → remember → zettelize → assemble → write → doc-writer
 | Skill | Role |
 |---|---|
 | **`/kb-obsidian-remember`** | Byte-for-byte raw capture into `raw_root`. Epoch-timestamped filename. No formatting, no opinion. Gets out of the way. |
-| **`/kb-obsidian-zettelize`** | Atomizes any source into one-idea-per-file zettels in `zettel_root`. Deduplicates against existing zettels — updates instead of duplicating. |
+| **`/kb-obsidian-zettelize`** | Atomizes any source into one-idea-per-file zettels in `zettel_root`. Deduplicates against existing zettels; updates instead of duplicating. |
 | **`/kb-obsidian-assemble`** | Curates existing zettels into topical resource notes. Librarian, not writer: links and embeds only. Surfaces gaps rather than filling them. |
 | **`/kb-obsidian-write`** | Generates polished prose from vault knowledge. Mandatory zettel citations. Accepts an optional template (blog post, briefing, essay) or freestyle for open-ended prose. Can bypass `assemble` and take zettels directly. |
 
@@ -295,7 +348,7 @@ Raw content → remember → zettelize → assemble → write → doc-writer
 
 ### The Support Layer
 
-Four primitives that the pipeline skills depend on — and that you can call standalone.
+Four primitives that the pipeline skills depend on; call them standalone too.
 
 | Skill | Role |
 |---|---|
@@ -309,10 +362,11 @@ Four primitives that the pipeline skills depend on — and that you can call sta
 
 Every zettel carries two frontmatter fields that every skill respects:
 
-- `total_access` — incremented by any skill that reads the zettel
-- `use_count` — incremented only on productive use (citation, merge, assembly inclusion)
+- `total_access`: incremented by any skill that reads the zettel
+- `use_count`: incremented only on productive use (citation, merge, assembly inclusion)
 
-This creates a usage-weighted knowledge graph. High-score zettels are foundational knowledge. Low-score zettels with high age are candidates for `lint`'s `stale-candidate` check and eventual `archive`.
+This creates a usage-weighted knowledge graph. High-score zettels are foundational knowledge. Low-score
+zettels with high age are candidates for `lint`'s `stale-candidate` check and eventual `archive`.
 
 ### Common Workflows
 
@@ -356,17 +410,65 @@ This creates a usage-weighted knowledge graph. High-score zettels are foundation
 | `kb-obsidian-archive` | Mark notes archived/superseded/deprecated | No | Increments `total_access` |
 | `kb-obsidian-config` | Graph view configuration | No | No effect |
 
-Vault path resolution is always sourced from `system.md`. See individual `skills/kb-obsidian-{name}/SKILL.md` files for full input contracts, step-by-step behavior, and hard rules.
+Vault path resolution is always sourced from `system.md`. See individual `skills/kb-obsidian-{name}/SKILL.md`
+files for full input contracts, step-by-step behavior, and hard rules.
+
+---
+
+## What Gets Left Behind
+
+Every closed feature leaves a trail in `.otsumi/{feature-name}/`:
+
+```
+pipeline.json          ← routing selectors, mode, status, timestamps
+stage-01-output.json   ← approved scenarios
+stage-02-output.json   ← trap analysis summary
+stage-03-output.json   ← RED test confirmation
+stage-04-output.json   ← implementation summary
+stage-05-output.json   ← refactor summary
+stage-06-output.json   ← decisions or explicit no-record reasoning
+stage-07-output.json   ← scorecard, dimensions, remediation history
+stage-08-output.json   ← documentation written
+events.json            ← append-only event log: every action, timestamped
+```
+
+And in the project itself:
+
+```
+features/{feature-name}.feature   ← the approved spec
+tests/                            ← the test suite
+src/                              ← the implementation
+docs/decisions/                   ← ADR + TDR records
+```
+
+Nothing is invented. Every artifact is earned.
+
+---
+
+## Customization
+
+| What | Where | How |
+|---|---|---|
+| System context (every agent) | `system.md` | Keep lean. Loaded for every invocation. Add hard floors that apply to all roles. |
+| Ōshō voice | `skills/agent-load-persona/SKILL.md` | Rewrite to taste. Loaded by Ōshō on session start via `/agent-load-persona`, NOT by specialists. |
+| Agent role | `agents/{name}.md` | Tweak input/output contracts, drift guardrails, hard rules. |
+| Workflow stages | `skills/dev-bdd-workflow/SKILL.md` | Change the stage table, the routing skills, the remediation policy. |
+| New language | Add `dev-{lang}-test-generator`, `dev-{lang}-implementer`, `dev-{lang}-refactorer` skills. Update `dev-stage-router` routing table. Add detection rules in `dev-env-setup`. | The board doesn't change. Only adapters do. |
+| New skill | `skills/{name}/SKILL.md` | Follow the canonical layout. Or use `/agent-create-skill` to distill one from completed work. |
+| Triage tiers | `agents/osho.md` (Request Triage section) | Adjust what counts as Tier 0/1/2. Default to escalation, never downgrade on doubt. |
 
 ---
 
 ## Why This Exists
 
-Most AI coding tools solve the wrong problem. They make *writing* code faster. They do nothing for the discipline around it.
+Most AI coding tools solve the wrong problem. They make *writing* code faster. They do nothing for the
+discipline around it.
 
-Where is the spec, and where are the test scenarios? Who decided on this architecture and why? What did the quality check actually find?
+Where is the spec? Where are the test scenarios? Who decided on this architecture, and why? What did the
+quality check actually find?
 
-Otsumi answers those questions by making them unavoidable. Every feature delivered through the BDD workflow leaves behind:
+Otsumi answers those questions by making them unavoidable. Every feature delivered through the BDD workflow
+leaves behind:
 
 - a Gherkin spec that survives the next sprint
 - adversarial traps caught before they cost anything
@@ -376,19 +478,24 @@ Otsumi answers those questions by making them unavoidable. Every feature deliver
 - evidence-backed quality scores with blocking thresholds
 - human-facing docs generated from artifacts, not summaries
 
-You choose what you own. You choose what the workflow owns. The workflow never pretends a stage was completed when it wasn't.
+You choose what you own. You choose what the workflow owns. The workflow never pretends a stage was completed
+when it wasn't.
 
 ---
 
 ## Design Principles
 
-**Roles do not blur.** Ōshō is the only mouth, Kakugyō plans but never executes, specialists own one concern. The architecture refuses scope creep at the agent level.
+**Roles do not blur.** Ōshō is the only mouth, Kakugyō plans but never executes, specialists own one
+concern. The architecture refuses scope creep at the agent level.
 
-**Drift guardrails are explicit.** Every agent file lists what to do when it starts behaving like a different agent: route the work to the agent that actually owns that concern.
+**Drift guardrails are explicit.** Every agent file lists what to do when it starts behaving like a different
+agent: route the work to the agent that actually owns that concern.
 
-**No hidden state.** Every stage writes a JSON artifact, every event appends to an immutable log. Recovery, replay, and audit are first-class.
+**No hidden state.** Every stage writes a JSON artifact, every event appends to an immutable log. Recovery,
+replay, and audit are first-class.
 
-**Plain Markdown over framework.** A multi-agent system shouldn't require an SDK. It should require a directory of `.md` files and an AI CLI that can read them.
+**Plain Markdown over framework.** A multi-agent system shouldn't require an SDK. It should require a
+directory of `.md` files and an AI CLI that can read them.
 
 **Skills are weapons. Agents are trigger fingers. Ōshō is fire control.**
 

@@ -6,7 +6,17 @@ interaction_model: multi-turn
 
 # KB Obsidian Write
 
-Build original, citation-backed prose from a vault's knowledge graph. This skill reads zettels (or an assembled resource note), synthesizes them into coherent prose — articles, essays, explanations, structured reports, or any long-form output the user requests — and enforces that **every factual claim cites its source zettel**. It is the writing stage of the vault pipeline: it sits downstream of assembly and upstream of optional style refinement, but it can run standalone against raw zettels or a topic query.
+Build original, citation-backed prose from a vault knowledge graph.
+
+This skill:
+- reads zettels and/or an assembled resource note,
+- synthesizes coherent long-form prose (article, essay, explanation, report, etc.),
+- enforces that **every factual claim has an inline source zettel citation**.
+
+Pipeline role:
+- downstream of `kb-obsidian-assemble`,
+- upstream of optional style refinement (`doc-writer`),
+- can also run standalone from raw zettels or a topic query.
 
 ---
 
@@ -41,7 +51,7 @@ Build original, citation-backed prose from a vault's knowledge graph. This skill
 
 ---
 
-## Usage
+## Invocation
 
 - `/kb-obsidian-write "{topic}"` — find relevant zettels by topic query, generate prose.
 - `/kb-obsidian-write --from {zettel-path}` — write from a specific zettel. Repeat `--from` for multiple zettels.
@@ -61,7 +71,7 @@ Flags may be combined freely:
 /kb-obsidian-write chess "Indian Attack" --dry-run
 ```
 
-### Template behavior (--template)
+### `--template` behavior
 
 - **With `--template {path-or-description}`**: The generated prose MUST follow that template's section structure, heading hierarchy, and field layout exactly. If the value resolves to a file path (vault-relative or absolute), read the file and derive structure from it. If the value is a format description string (e.g. `"blog post with intro, three sections, conclusion"`), treat it as a structural specification.
 - **Without `--template`**: The skill produces freestyle prose in whatever form best serves the content — length, heading depth, and structure are chosen to fit the synthesised material, not a fixed mold.
@@ -83,14 +93,14 @@ Flags may be combined freely:
 
 ## Steps
 
-### 1. Resolve target vault
+### Step 1 — Resolve target vault
 
 1. Read `system.md` → `## Knowledge Bases` → vault entry (by id or default).
 2. Extract `zettel_root`, `resources_root`, `zettel_template`, and any safety caveats.
 3. Read `zettel_template`. Capture the canonical frontmatter key names, casing, `Author` default, date format, and `Lang` default.
 4. If `--template` references a file path, read that file now. Capture its section headings, field order, and structural constraints.
 
-### 2. Resolve source zettels
+### Step 2 — Resolve source zettels
 
 Depending on the invocation mode:
 
@@ -115,7 +125,7 @@ After source resolution:
 - Increment `total_access` on each zettel's frontmatter for each zettel read.
 - Confirm the working set with the user before proceeding to prose generation. Surface any detected coverage gaps.
 
-### 3. Plan the prose structure
+### Step 3 — Plan prose structure
 
 1. Define the output structure:
    - **With `--template`**: map sections from the template to zettel coverage. Flag uncovered mandatory sections as gaps.
@@ -123,7 +133,7 @@ After source resolution:
 2. Map each working zettel to one or more sections where its content contributes.
 3. Present the outline and zettel-to-section mapping to the user. Allow adjustment before writing.
 
-### 4. Generate prose
+### Step 4 — Generate prose
 
 1. Write prose section by section, drawing only from the working zettel set.
 2. For every factual claim, embed an inline citation in `[[zettel-title]]` wikilink format immediately at the point of the claim (e.g. `The Indian Attack favours a King-side fianchetto [[King-side fianchetto motif]].`).
@@ -134,7 +144,7 @@ After source resolution:
 5. After all sections are drafted, scan the full text for any factual statement lacking a citation. Either add the citation or remove the claim. There must be zero uncited factual claims at the end of this pass.
 6. Increment `use_count` on each zettel that appears at least once as a citation in the final prose.
 
-### 5. Compose the final output
+### Step 5 — Compose final output
 
 If the output will be written as a vault note (default to `resources_root`):
 
@@ -156,7 +166,7 @@ Filename (when writing to vault): `{Title}.md` in `resources_root`. Replace Obsi
 
 Append a `## Sources` footer listing every cited zettel as wikilinks, matching the `Links:` frontmatter (same set, no extras in either direction).
 
-### 6. Update flow (existing output file)
+### Step 6 — Update flow (existing output file)
 
 If the output file already exists:
 
@@ -169,7 +179,7 @@ If the output file already exists:
    - NEVER touch `Creation Date`, `Title`, `Author`, `Template`, or `Lang` unless the user explicitly approves.
 3. Show the full diff. Get explicit approval. Write atomically.
 
-### 7. Approval gate and write
+### Step 7 — Approval gate and write
 
 1. Present the full proposed output (prose + frontmatter if applicable) for `approve` / `edit` / `abort`.
 2. `--dry-run`: stop here; emit the proposal as the skill's return value. Write nothing.
@@ -179,7 +189,7 @@ If the output file already exists:
    - Rename temp file to the final path.
    - Verify the written file is readable and the frontmatter (if present) is valid YAML.
 
-### 8. Report
+### Step 8 — Report
 
 Return:
 
@@ -193,7 +203,7 @@ Return:
 
 ## Validation
 
-Before claiming success:
+Before claiming success, all checks below MUST be true:
 
 - [ ] `zettel_root`, `resources_root`, and `zettel_template` all came from `system.md`. No paths were hardcoded.
 - [ ] `zettel_template` was read before any frontmatter was generated. Key casing matches the template exactly.

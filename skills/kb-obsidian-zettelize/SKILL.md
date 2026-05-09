@@ -6,7 +6,9 @@ interaction_model: multi-turn
 
 # KB Obsidian Zettelize
 
-Take any source and produce a set of atomic zettels in a vault's `zettel_root`, honoring the vault's `zettel_template`, deduplicating against existing zettels by tags and title, and updating instead of duplicating when an overlapping zettel already exists.
+## Mission
+
+Transform one source into a set of **atomic zettels** under the vault's `zettel_root`, using the vault templates exactly, deduplicating against existing zettels, and updating existing notes when overlap is confirmed instead of duplicating.
 
 ## Usage
 
@@ -22,22 +24,36 @@ Take any source and produce a set of atomic zettels in a vault's `zettel_root`, 
 
 ## Hard Rules
 
+### Path + Template Authority
+
 - MUST resolve `zettel_root`, `raw_root`, and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any of those paths.
 - MUST read the actual `zettel_template` file before generating any zettel. Frontmatter keys, casing (`tags:` lowercase), `Author`, `Lang`, `Template: Zettel`, and date format (`YYYY/MM/DD HH:mm:ss`) MUST come from the template, NEVER from a guess.
 - MUST also read `definition_template` when extracted concepts include term definitions — emit those as `#definition` notes per that template's shape rather than as plain zettels.
+
+### Atomicity + Dedup
+
 - MUST honor zettel **atomicity**: one idea per file. If a candidate note covers two distinct ideas, split it. NEVER produce a multi-idea zettel.
 - MUST search `zettel_root` BEFORE creating any new zettel:
   - by **title** (fuzzy / alias overlap)
   - by **tags** (intersection of proposed tags and existing-zettel tags)
   - by **content** (semantic overlap on the candidate's core claim)
   - present every match with the overlap reasoning and let the user choose: `merge into existing` / `update existing` / `create new` / `skip`.
+
+### Source Fidelity + Provenance
+
 - MUST NEVER fabricate facts not present in the source. If the source does not state a claim, the claim does not enter a zettel. If summarization risks distortion, quote.
 - MUST cite the origin in every zettel:
   - source is a vault note → wikilink in `Links:`
   - source is a local file → relative or absolute path in `Links:` and a body footer line
   - source is a URL → URL in `Links:` and a body footer line with the fetch date
+
+### Approval + Safety
+
 - MUST present every proposed zettel (or the full batch in `--batch-approve` mode) for explicit `approve` / `edit` / `skip` / `abort` BEFORE writing.
 - MUST honor every safety caveat declared on the vault entry. If the target path resolves under a directory listed as a submodule in the vault's safety caveats, emit a submodule write disclosure unconditionally.
+
+### Non-Negotiable NEVER Rules
+
 - NEVER squash multiple ideas into one zettel.
 - NEVER modify the source. Raw notes stay raw. Even if the source lives in `raw_root`, this skill only reads it.
 - NEVER `git add`, `git commit`, or `git push`.

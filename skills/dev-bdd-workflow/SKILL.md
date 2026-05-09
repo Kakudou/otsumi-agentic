@@ -5,7 +5,14 @@ description: "BDD delivery workflow doctrine: feature specification, traps, RED 
 
 # Dev BDD Workflow
 
-Provide BDD workflow orchestration doctrine to the host workflow. This is a workflow skill, NOT an agent identity.
+Provide deterministic BDD workflow doctrine to the host workflow.
+This is a workflow skill, NOT an agent identity.
+
+## Purpose Lock
+
+- Define the canonical BDD delivery stages and routing rules.
+- Enforce RED → GREEN → refactor discipline.
+- Keep orchestration state explicit, machine-readable, and auditable.
 
 ## Hard Rules
 
@@ -17,6 +24,8 @@ Provide BDD workflow orchestration doctrine to the host workflow. This is a work
 - User-facing questions MUST be handled by the host workflow, not by hidden stage workers.
 
 ## Canonical Stages
+
+These stage IDs are canonical and ordered.
 
 | ID | Name | Purpose |
 |---|---|---|
@@ -31,15 +40,34 @@ Provide BDD workflow orchestration doctrine to the host workflow. This is a work
 
 ## Required Workflow Skills
 
-`/flow-start-pipeline`, `/flow-continue`, `/flow-complete-stage`, `/flow-abort`, `/flow-replay`, `/flow-diff-stage`, `/core-atomic-log`, `/core-status`, `/core-backlog`
+- `/flow-start-pipeline`
+- `/flow-continue`
+- `/flow-complete-stage`
+- `/flow-abort`
+- `/flow-replay`
+- `/flow-diff-stage`
+- `/core-atomic-log`
+- `/core-status`
+- `/core-backlog`
 
 ## Development Skills
 
-`/dev-env-setup`, `/dev-run-tests`, `/dev-quality-check`, `/dev-delivery-review`, `/dev-expert-code-review`, `/dev-quality-score`, `/doc-writer`, `/doc-decision-record`
+- `/dev-env-setup`
+- `/dev-run-tests`
+- `/dev-quality-check`
+- `/dev-delivery-review`
+- `/dev-expert-code-review`
+- `/dev-quality-score`
+- `/doc-writer`
+- `/doc-decision-record`
 
 ## Stage Adapter Skills
 
-`/dev-stage-router`, `/dev-bdd-gherkin`, `/dev-python-test-generator`, `/dev-python-implementer`, `/dev-python-refactorer`
+- `/dev-stage-router`
+- `/dev-bdd-gherkin`
+- `/dev-python-test-generator`
+- `/dev-python-implementer`
+- `/dev-python-refactorer`
 
 ## Correction Brief Protocol
 
@@ -61,7 +89,7 @@ When quality scoring requires remediation:
 
 1. Read the latest quality output.
 2. Stop after three remediation cycles and escalate manually.
-3. Route failures:
+3. Route failures by dimension:
    - linting/formatting/import hygiene/type safety/architecture → refactor or user remediation
    - test quality → test generator or user remediation
    - docs quality → docs/decision record update
@@ -149,7 +177,7 @@ Actions: <explicit allowed actions>
 
 ## Stage Agent Contract
 
-Each stage Fuhyō follows this common scaffold:
+Each stage Fuhyō MUST follow this scaffold:
 
 1. Read `.otsumi/<feature-name>/pipeline.json`.
 2. Confirm owned stage exists in `stages`.

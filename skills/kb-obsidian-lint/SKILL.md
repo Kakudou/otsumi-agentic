@@ -6,7 +6,14 @@ interaction_model: single-shot
 
 # KB Obsidian Lint
 
-Scan a vault's `zettel_root` and `resources_root` for structural and relational health signals across five named checks. Lint is a **read-only analysis primitive** — it surfaces findings, assigns canonical check IDs, and suggests remediation vocabulary, but it never writes to the vault, never deletes notes, and never proposes content that should be autonomously generated. Every remediation decision belongs to the user.
+Run a vault health scan over `zettel_root` and `resources_root` using exactly five canonical checks.
+
+This skill is a **read-only analysis primitive**:
+- It surfaces findings and assigns canonical check IDs.
+- It suggests remediation using restricted vocabulary only.
+- It never writes/deletes/renames vault notes.
+- It never recommends autonomous content generation.
+- All remediation decisions belong to the user.
 
 ## Usage
 
@@ -30,46 +37,74 @@ Scan a vault's `zettel_root` and `resources_root` for structural and relational 
 
 ## Hard Rules
 
-- MUST resolve `zettel_root`, `resources_root`, and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any vault path inside this skill.
-- MUST refuse with an explicit error if the resolved vault entry is missing `zettel_root` or `resources_root`, or if those directories do not exist on disk.
-- MUST NOT write, delete, rename, or modify (beyond `total_access`) any file in the vault. Lint is **strictly read-only**. This is non-negotiable.
-- MUST NOT recommend autonomous content generation as remediation. Permitted remediation vocabulary is limited to:
-  - "run `/kb-obsidian-assemble`"
-  - "run `/kb-obsidian-archive`"
-  - "consider adding a wikilink from `[[A]]` to `[[B]]`"
-  - "review for potential update"
-  - "consider updating `Modification Date`"
-  Lint MUST NEVER suggest "create a new zettel to fill this gap" or any equivalent instruction to generate content.
-- MUST enumerate exactly five checks: `orphan-zettel`, `unassembled-cluster`, `missing-crosslink`, `stale-candidate`, `candidate-contradiction`. Adding or removing checks requires a skill version bump.
-- MUST increment `total_access` in the frontmatter field for every zettel file opened during the scan pass. MUST NOT increment `use_count` — lint is read-only analysis, not productive zettel use.
-- For `candidate-contradiction`: MUST present conflicting claims **verbatim** from each zettel's body. MUST NOT assert which claim is correct, more recent, or more authoritative. The user decides.
-- For `stale-candidate`: MUST document prominently in every finding that this check has a **high false-positive rate**. MUST NOT autonomously mark or archive any zettel. MUST surface `--skip stale-candidate` as the recommended workaround when users find the signal too noisy.
-- NEVER `git add`, `git commit`, or `git push`. No git operation of any kind.
-- NEVER read or modify files outside `zettel_root` and `resources_root` except `system.md` (for vault resolution).
+1. MUST resolve `zettel_root`, `resources_root`, and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode vault paths.
+2. MUST refuse with an explicit error if the vault entry is missing `zettel_root` or `resources_root`, or if either directory does not exist on disk.
+3. MUST NOT write, delete, rename, or modify any vault file except incrementing `total_access` as explicitly required below. Lint is **strictly read-only**.
+4. MUST NOT recommend autonomous content generation as remediation. Permitted remediation vocabulary is limited to:
+   - "run `/kb-obsidian-assemble`"
+   - "run `/kb-obsidian-archive`"
+   - "consider adding a wikilink from `[[A]]` to `[[B]]`"
+   - "review for potential update"
+   - "consider updating `Modification Date`"
+   Lint MUST NEVER suggest "create a new zettel to fill this gap" (or equivalent content-generation instructions).
+5. MUST enumerate exactly five checks: `orphan-zettel`, `unassembled-cluster`, `missing-crosslink`, `stale-candidate`, `candidate-contradiction`. Adding/removing checks requires a version bump.
+6. MUST increment `total_access` once for every zettel file opened during scanning.
+7. MUST NOT increment `use_count`.
+8. For `candidate-contradiction`, MUST present conflicting claims **verbatim** from zettel bodies and MUST NOT assert correctness/authority/recency.
+9. For `stale-candidate`, MUST label every finding as **high false-positive rate**, MUST NOT autonomously mark/archive zettels, and MUST surface `--skip stale-candidate` as the noise workaround.
+10. NEVER run git operations (`git add`, `git commit`, `git push`, or any other git command).
+11. NEVER read or modify files outside `zettel_root` and `resources_root`, except reading `system.md` for vault resolution.
+
+## Execution Contract
+
+### Inputs
+- Optional `{vault-id}`
+- Optional `--skip {check-id}` or `--skip {id1},{id2}`
+- Optional `--check {check-id}` (run only one check)
+- Optional `--threshold N` for `unassembled-cluster` (default `5`)
+
+### Required Data Sources
+- `system.md` (vault resolution only)
+- `zettel_root/**/*.md`
+- `resources_root/**/*.md`
+
+### Output Contract
+- Emit one report section per executed check in canonical order.
+- Emit a final Summary table with per-check counts, skipped checks, scanned counts, and safety statement.
+- If a required vault path is missing/invalid, refuse with explicit error.
 
 ## Steps
 
 ### 1. Resolve target vault
 
-1. Read `system.md` → locate `## Knowledge Bases`.
-2. If `{vault-id}` was supplied, find the matching `### \`{vault-id}\`` subsection. Otherwise pick the entry tagged `(default)`.
-3. Extract `zettel_root`, `resources_root`, and `zettel_template`. Refuse with an explicit error if any required field is absent.
-4. Verify that `zettel_root` and `resources_root` exist on disk. Refuse if missing.
-5. Read `zettel_template` to obtain the canonical frontmatter field list (especially: `Tags`, `Links`, `Creation Date`, `Modification Date`, `total_access`, `use_count`).
-6. Log resolved paths for transparency in the report.
+1. Read `system.md`, then locate `## Knowledge Bases`.
+2. If `{vault-id}` is provided, select matching `### \`{vault-id}\``; otherwise select the entry marked `(default)`.
+3. Extract `zettel_root`, `resources_root`, and `zettel_template`.
+4. Refuse with explicit error if required fields are missing.
+5. Verify `zettel_root` and `resources_root` exist on disk; refuse if either is missing.
+6. Read `zettel_template` to capture canonical frontmatter fields, especially:
+   - `Tags`
+   - `Links`
+   - `Creation Date`
+   - `Modification Date`
+   - `total_access`
+   - `use_count`
+7. Log resolved paths in the report.
 
 ### 2. Index the vault
 
-Build an in-memory index by scanning every `.md` file in `zettel_root` (and `resources_root` for inbound-link detection):
+Build an in-memory index by scanning `.md` files in `zettel_root` and `resources_root`:
 
-- **Per-zettel record**: `{path, title, aliases, tags, links_frontmatter, wikilinks_in_body, creation_date, modification_date}`.
-- **Inbound-link map**: for each wikilink `[[Target]]` found in any vault file (zettel or resource), record `target → {source_path}` in a reverse lookup table.
-- **Tag index**: `tag → [zettel_path, ...]` across all zettels.
-- **Resource-note set**: all `.md` files in `resources_root`.
+- **Per-zettel record**: `{path, title, aliases, tags, links_frontmatter, wikilinks_in_body, creation_date, modification_date}`
+- **Inbound-link map**: for every wikilink target found in any vault file, map `target → {source_path}`
+- **Tag index**: `tag → [zettel_path, ...]`
+- **Resource-note set**: all `.md` file paths in `resources_root`
 
-Increment `total_access` in the frontmatter once per zettel file opened. `use_count` is NOT touched.
+Increment `total_access` once per zettel file opened. Do not touch `use_count`.
 
-Apply `--skip` and `--check` flags: skip building data only used by suppressed checks when unambiguously safe; otherwise build the full index and filter at reporting time.
+Apply `--skip` / `--check` flags:
+- Skip building data used only by suppressed checks when unambiguously safe.
+- Otherwise build the full index, then filter at report time.
 
 ### 3. Run checks
 

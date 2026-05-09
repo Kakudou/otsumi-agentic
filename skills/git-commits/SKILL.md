@@ -16,11 +16,15 @@ Turn working-tree changes into focused, reviewable local commits.
 
 ## Mandatory Routing
 
-Any agent creating a git commit MUST run through this skill. Calling `git commit` via raw bash without going through the discipline below (group → atomicity check → emoji pick → one-line message → stage → commit) is forbidden — it bypasses the rules and produces messy history. If the agent is not authorized for `git-commits`, it returns `blocked` rather than shelling out a raw commit.
+Any agent that creates a git commit MUST route through this skill.
+
+Calling `git commit` via raw bash without following this discipline (group → atomicity check → emoji pick → one-line message → stage → commit) is forbidden. It bypasses commit hygiene and produces messy history.
+
+If the agent is not authorized for `git-commits`, it MUST return `blocked` instead of shelling out a raw commit.
 
 ## Hard Rules
 
-- ALWAYS ask and wait for user go-to before commiting, giving time to review/edit files before.
+- ALWAYS ask and wait for user go-ahead before committing, giving time to review/edit files first.
 - NEVER push. Local commits only.
 - NEVER commit directly to `main` or `master` unless explicitly authorized.
 - The commit message MUST be one short summary line — no body.
@@ -31,13 +35,13 @@ Any agent creating a git commit MUST run through this skill. Calling `git commit
 
 ## Commit Message Format
 
-Preferred (with gitmoji):
+Preferred format (with gitmoji):
 
 ```text
 {emoji} {type}({scope}): {message}
 ```
 
-Plain Conventional Commit (when the gitmoji set does not cover the intent):
+Fallback format (plain Conventional Commit, when gitmoji does not cover the intent):
 
 ```text
 {type}({scope}): {message}
@@ -204,7 +208,9 @@ Pick the single emoji whose description best matches the dominant intent of the 
 
 ## Save Commits
 
-Use `save(scope): message` for temporary checkpoints. Save commits are allowed during development but SHOULD be squashed / reworked before final merge.
+Use `save(scope): message` for temporary checkpoints.
+
+Save commits are allowed during development but SHOULD be squashed / reworked before final merge.
 
 ## Fixup Commits
 

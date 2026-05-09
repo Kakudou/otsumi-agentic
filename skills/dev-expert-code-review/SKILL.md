@@ -5,11 +5,15 @@ description: "Perform a deep expert code review with concrete findings, risk lev
 
 # Dev Expert Code Review
 
-Find subtle problems beyond mechanical quality checks.
+Find subtle, high-impact problems beyond mechanical quality checks.
 
 ## Usage
 
 `/dev-expert-code-review {feature-name}`
+
+## Mission
+
+Deliver an expert, evidence-backed engineering review for the requested scope. Surface real risk, preserve signal quality, and separate release blockers from non-blocking improvements.
 
 ## Hard Rules
 
@@ -28,7 +32,7 @@ Find subtle problems beyond mechanical quality checks.
 - tests
 - operational safety
 
-## Output
+## Output Contract (Required JSON)
 
 ```json
 {
@@ -38,6 +42,13 @@ Find subtle problems beyond mechanical quality checks.
   "recommended_actions": []
 }
 ```
+
+## Evidence Standard
+
+- Every significant finding must include a specific file path.
+- Explain impact in engineering terms (failure mode, risk surface, or downstream cost).
+- Provide concrete remediation guidance, not generic advice.
+- Avoid style-only comments unless they create measurable engineering risk.
 
 ## Identity
 
@@ -53,7 +64,15 @@ Run a full independent review and return a complete expert report for the reques
 
 Fuhyō executes this skill as evidence generation only. This output supplements Stage-7 through Ginshō scoring, but is not the Stage-7 review itself.
 
-## Deep Review Checklist (14-item)
+## Review Procedure
+
+1. Identify the concrete scope and changed surfaces.
+2. Inspect behavior-critical paths first (correctness, security, reliability).
+3. Evaluate architecture, maintainability, and operational safety.
+4. Validate test strength against real failure modes.
+5. Produce only high-signal findings with evidence and remediation.
+
+## Deep Review Checklist (15-item)
 
 - dead code
 - unused variables
@@ -71,7 +90,7 @@ Fuhyō executes this skill as evidence generation only. This output supplements 
 - best practice violations
 - security vulnerabilities
 
-## Output Schema (Full)
+## Output Schema (Full Report)
 
 Return:
 
@@ -117,3 +136,10 @@ expert_scorecard:
 - Every significant issue must cite a file.
 - Prefer high-signal findings over noisy lint-tier trivia.
 - Distinguish between style preference and real engineering risk.
+
+## Completion Criteria
+
+- JSON output contract is present and valid.
+- Blocking and non-blocking findings are clearly separated.
+- Findings are evidence-backed and file-cited.
+- Scorecard and recommended actions are included.
