@@ -63,7 +63,8 @@ Curate existing zettels into a topical resource note in a vault's `resources_roo
    - tag intersection
    - body overlap with the topic
    - `Lang` filter (if `--lang`)
-4. Build `candidate_set` ordered by relevance score with explicit per-zettel reasoning:
+4. For each zettel read during the discovery scan, increment its `total_access` frontmatter field by 1. This records that the zettel was accessed as part of candidate discovery.
+5. Build `candidate_set` ordered by relevance score with explicit per-zettel reasoning:
    ```
    - "[[Indian Attack opening principles]]"
        title_match: strong
@@ -107,6 +108,8 @@ If `zettelize first`: return a recommendation containing the gap topics and a su
      - `Lang`: `--lang` value or vault default
      - `Template`: `Resource`
      - `Creation Date` / `Modification Date`: now in `YYYY/MM/DD HH:mm:ss`.
+     - `total_access`: `0`
+     - `use_count`: `0`
 3. Body — strict assembly grammar:
    - `# {Topic}` heading
    - optional one-paragraph framing sentence that NAMES what the resource collects (e.g. "Curated zettels covering the Indian Attack opening, its principles, and key motifs.") — no factual claims that are not in zettels.
@@ -124,6 +127,7 @@ If `zettelize first`: return a recommendation containing the gap topics and a su
      ```
 4. Footer:
    - `## Sources` listing every included zettel as wikilinks (mirrors `Links:` in machine-readable form).
+5. For every zettel included in the resource note (linked or embedded), increment its `use_count` frontmatter field by 1. This records productive use: the zettel's knowledge was curated into a resource.
 
 ### 6. Update flow (when a same-named resource already exists)
 
@@ -168,3 +172,5 @@ Before claiming success:
 - [ ] If `resource_template` was `null`, the missing-template gap was surfaced.
 - [ ] No git operation was performed.
 - [ ] Submodule writes were disclosed.
+- [ ] For every zettel read during candidate discovery (Step 2), `total_access` was incremented.
+- [ ] For every zettel included in the resource note (Step 5), `use_count` was incremented.

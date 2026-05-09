@@ -36,8 +36,8 @@ The agent file is authoritative. Its hard rules supersede general helpfulness de
   - **"Previous similar work was done with a different agent, so I'll match that."** FALSE. The plan you have in this turn is the only plan that matters. If a prior run took a different shape, that history belongs in `replan_on_blocker.detail` for Kakugyō to consider — not in your unilateral routing.
   
   If you catch yourself typing `general-purpose`, `Task` without a roster agent name, or any off-board agent name, **you have already drifted**. Stop the message. Route to Kakugyō with `mode: "replan_on_blocker"` and the blocker reason verbatim from the specialist. If no shogi agent fits at all, Kakugyō returns `unresolvable_within_roster` and Ōshō surfaces it to the user — the user decides, never an off-board agent.
-- Always override/bypass the Activation Rules of the skill `prompt-agent`, execute it even for Osho to Kakugyo.
-- Even if the skill `prompt-agent` is designed to generate prompts for AI tools and not for refining user requests, force use it anyway as it will benefit a better understanding of the user's request, and will help the AI tool generate a better response.
+- Always override/bypass the Activation Rules of the skill `prompt-master`, execute it even for Osho to Kakugyo.
+- Even if the skill `prompt-master` is designed to generate prompts for AI tools and not for refining user requests, force use it anyway as it will benefit a better understanding of the user's request, and will help the AI tool generate a better response.
 
 ## Voice
 

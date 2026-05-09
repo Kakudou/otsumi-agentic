@@ -20,6 +20,7 @@ Any agent creating a git commit MUST run through this skill. Calling `git commit
 
 ## Hard Rules
 
+- ALWAYS ask and wait for user go-to before commiting, giving time to review/edit files before.
 - NEVER push. Local commits only.
 - NEVER commit directly to `main` or `master` unless explicitly authorized.
 - The commit message MUST be one short summary line — no body.

@@ -25,3 +25,74 @@ Generate documentation humans can use — README sections, changelog entries, AP
 3. Draft docs using only verified behavior.
 4. Preserve existing project tone when present.
 5. Return files written and source artifacts used.
+
+## Shogi Role Framing
+
+- **Hisha** is the writer: owns final human-facing phrasing and structure.
+- **Fuhyō** is the executor: performs bounded atomic doc operations exactly as requested.
+
+## Input Schema
+
+Use this skill with the following input shape:
+
+```yaml
+feature_name: <kebab-case feature name>
+feature_file: <path to feature file>
+language_id: <language family id>
+src_files:
+  - <path>
+decisions_dir: <path to docs/decisions>
+doc_types:
+  - readme
+  - blog
+  - api-reference
+  - changelog
+  - obsidian
+stage_results: <map of stage summaries>
+```
+
+## Documentation Types
+
+### README
+
+A self-contained README block covering the feature so readers can understand purpose, usage, and constraints without opening implementation files.
+
+### Blog post
+
+A technical narrative for an unfamiliar audience, focusing on problem context, behavior, and outcomes in approachable language.
+
+### API reference
+
+Reference documentation for public interface features (for example commands, endpoints, functions, parameters, and return surfaces).
+
+### Changelog entry
+
+A concise release-note style entry formatted for `CHANGELOG.md`.
+
+### ObsidianMD feature note
+
+A strict Zettelkasten atomic note using wikilinks (for example `[[ADR-XXXX-title]]`) and aligned with vault configuration referenced in `system.md`.
+
+## Writing Rules
+
+1. Domain language first.
+2. API reference may use interface terms where public contracts are documented.
+3. Examples first, then explanation.
+4. Never invent behavior not present in provided artifacts.
+5. No placeholder sections; include real content or omit the section.
+6. Use wikilinks for Obsidian notes.
+7. Treat traps as features; document relevant Stage-2 trap edge cases.
+
+## Footer Mandate
+
+Always add a footer: `Written by the Hand of <persona name fallback to model name> and the Eyes of <user name fallback to 'the Dev'>.`
+
+## Output Schema
+
+Return `stage-08-result` with:
+
+```yaml
+docs_written:
+  - type: readme | blog | api-reference | changelog | obsidian
+    path: <output file path>
+```

@@ -270,6 +270,96 @@ The intake is cheap. The knowledge compounds.
 
 ---
 
+## The kb-obsidian Skill Ecosystem
+
+Nine skills for managing personal knowledge in Obsidian vaults. All of them resolve vault paths from `system.md` — nothing is hardcoded. All refuse git operations. All skills that write content require human approval before committing anything to the vault.
+
+### The Knowledge Pipeline
+
+Raw content moves through three transformation stages before becoming polished output:
+
+```
+Raw content → remember → zettelize → assemble → write → doc-writer
+                            ↑                      ↑
+                         (atomize)          (optional bypass)
+```
+
+| Skill | Role |
+|---|---|
+| **`/kb-obsidian-remember`** | Byte-for-byte raw capture into `raw_root`. Epoch-timestamped filename. No formatting, no opinion. Gets out of the way. |
+| **`/kb-obsidian-zettelize`** | Atomizes any source into one-idea-per-file zettels in `zettel_root`. Deduplicates against existing zettels — updates instead of duplicating. |
+| **`/kb-obsidian-assemble`** | Curates existing zettels into topical resource notes. Librarian, not writer: links and embeds only. Surfaces gaps rather than filling them. |
+| **`/kb-obsidian-write`** | Generates polished prose from vault knowledge. Mandatory zettel citations. Accepts an optional template (blog post, briefing, essay) or freestyle for open-ended prose. Can bypass `assemble` and take zettels directly. |
+
+`doc-writer` (downstream, optional) can refactor `write` output into personal voice or house style.
+
+### The Support Layer
+
+Four primitives that the pipeline skills depend on — and that you can call standalone.
+
+| Skill | Role |
+|---|---|
+| **`/kb-obsidian-search`** | Retrieval primitive. Find zettels by semantic query, tag intersection, temporal range, or title/alias match. Used standalone or as infrastructure by other skills. |
+| **`/kb-obsidian-lint`** | Vault health checks. Five enumerated checks: `orphan-zettel`, `unassembled-cluster`, `missing-crosslink`, `stale-candidate`, `candidate-contradiction`. Read-only. Never recommends content generation. |
+| **`/kb-obsidian-log`** | Operations logging. Append-only event log via `core-atomic-log`. Query interface for operation history. Silent degradation on failure. |
+| **`/kb-obsidian-archive`** | Lifecycle management. Marks notes as archived, superseded, or deprecated. Never deletes. The remediation path for `lint`'s `stale-candidate` findings. |
+| **`/kb-obsidian-config`** | Graph view configuration: color groups, search lens, display, forces. Makes the structure visible. |
+
+### Usage Score Tracking
+
+Every zettel carries two frontmatter fields that every skill respects:
+
+- `total_access` — incremented by any skill that reads the zettel
+- `use_count` — incremented only on productive use (citation, merge, assembly inclusion)
+
+This creates a usage-weighted knowledge graph. High-score zettels are foundational knowledge. Low-score zettels with high age are candidates for `lint`'s `stale-candidate` check and eventual `archive`.
+
+### Common Workflows
+
+**Capture and process**
+```
+/kb-obsidian-remember    # drop raw content into inbox
+/kb-obsidian-zettelize   # atomize into zettel_root
+```
+
+**Build a topic overview**
+```
+/kb-obsidian-search      # find relevant zettels
+/kb-obsidian-assemble    # synthesize into resource note
+/kb-obsidian-write       # (optional) generate prose from it
+```
+
+**Health check and maintain**
+```
+/kb-obsidian-lint        # identify orphans, clusters, stale candidates
+/kb-obsidian-archive     # remediate stale-candidate findings
+```
+
+**Write from knowledge**
+```
+/kb-obsidian-search      # locate the relevant zettels
+/kb-obsidian-write --template "blog post"   # generate structured prose
+/doc-writer              # (optional) refactor into personal voice
+```
+
+### Skill Family Reference
+
+| Skill | One-liner | Read-only? | Usage score |
+|---|---|---|---|
+| `kb-obsidian-remember` | Raw intake | No | No effect |
+| `kb-obsidian-zettelize` | Atomize sources into zettels | No | Increments `total_access` on dedup scan + `use_count` on merge/update |
+| `kb-obsidian-assemble` | Curate zettels into resource notes | No | Increments `total_access` + `use_count` on inclusion |
+| `kb-obsidian-write` | Generate prose from vault knowledge | No | Increments `total_access` + `use_count` on citation |
+| `kb-obsidian-search` | Retrieve zettels by query | Yes | Increments `total_access` |
+| `kb-obsidian-lint` | Vault health checks (5 checks) | Yes | Increments `total_access` |
+| `kb-obsidian-log` | Append-only operations log | No (appends only) | No effect |
+| `kb-obsidian-archive` | Mark notes archived/superseded/deprecated | No | Increments `total_access` |
+| `kb-obsidian-config` | Graph view configuration | No | No effect |
+
+Vault path resolution is always sourced from `system.md`. See individual `skills/kb-obsidian-{name}/SKILL.md` files for full input contracts, step-by-step behavior, and hard rules.
+
+---
+
 ## Why This Exists
 
 Most AI coding tools solve the wrong problem. They make *writing* code faster. They do nothing for the discipline around it.

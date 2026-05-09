@@ -12,6 +12,8 @@ permissions:
     "dev-quality-score": allow
     "dev-quality-check": allow
     "dev-run-tests": allow
+    "dev-delivery-review": allow
+    "dev-expert-code-review": allow
     "*": deny
 color: "#9CA3AF"
 ---

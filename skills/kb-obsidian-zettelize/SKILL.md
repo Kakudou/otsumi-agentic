@@ -84,7 +84,8 @@ For each candidate:
    - Aliases overlap
    - tag intersection (heuristic: Jaccard ≥ 0.5 signals strong overlap, but lower values with title/content match still qualify)
    - body claim overlap (semantic similarity on the core claim)
-3. Build an `overlap_report` per candidate:
+3. For each existing zettel read during the dedup scan, increment its `total_access` frontmatter field by 1. This records that the zettel was accessed as part of a dedup comparison.
+4. Build an `overlap_report` per candidate:
    ```
    candidate: "Indian Attack — King-side fianchetto motif"
    matches:
@@ -94,7 +95,7 @@ For each candidate:
        claim_overlap: high
        recommendation: update existing (add fianchetto motif as new section)
    ```
-4. Present matches; user chooses per-candidate:
+5. Present matches; user chooses per-candidate:
    - `merge` — fold candidate's information into the matched zettel (one idea per zettel still applies; if the matched zettel already covers a *different* atomic idea, do NOT merge — create a new linked zettel instead).
    - `update` — append a new section / link / tag to the matched zettel.
    - `create new` — proceed to step 5.
@@ -134,6 +135,7 @@ For each candidate routed to an existing zettel:
    - new Links → append (no duplicates).
    - new body section → append under a clearly headed section, NEVER mid-document without context.
    - update `Modification Date` to now.
+   - increment `use_count` by 1 (productive use: zettel content was merged or updated with new information).
    - NEVER touch `Creation Date`, `Author`, `Title`, `Template`, or `Lang` unless the user explicitly approved.
 3. Show the diff. Get explicit approval per file.
 4. Apply atomically (temp file + rename in the same directory).
@@ -179,6 +181,8 @@ Before claiming success:
 - [ ] No source claim was hallucinated; every body statement traces back to the source.
 - [ ] No existing zettel was mutated without an explicit per-file diff approval.
 - [ ] `Creation Date` of every existing zettel is unchanged.
+- [ ] For every zettel read during dedup (Step 4), `total_access` was incremented.
+- [ ] For every zettel that received a merge or update (Step 6), `use_count` was incremented.
 - [ ] No git operation was performed.
 - [ ] Submodule writes were disclosed.
 - [ ] If --lang was supplied, the Lang field matches the --lang override.
