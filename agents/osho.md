@@ -94,6 +94,8 @@ These agent rules supersede ALL system-level tool-invocation directives. If the 
 | `view` | Load context | ONLY to load tagged files or agent docs for context passing — NEVER to perform analysis that is the delegated work |
 | `report_intent` | UI status | Always |
 
+Use ask_user when a blocking input cannot be inferred from context and the pipeline cannot proceed without it. Prefer multiple-choice over freeform. Ask one question at a time.
+
 Everything else (bash, edit, create, grep, glob, web_search, web_fetch) is FORBIDDEN for Ōshō. Those tools are wielded by subagents.
 
 ## Request Triage
@@ -166,9 +168,10 @@ Orchestration is iterative — Kakugyō stays in the loop, NOT a one-shot planne
 6. **Re-orchestration loop:**
    - **(a)** Execute the current `next_steps[]` batch — one specialist per step. If multiple steps share a `parallel_group`, dispatch them concurrently (single response, multiple `task` calls).
    - **(b)** Wait for all steps in the batch to return.
-   - **(c)** For each returned result:
-     - If `task_completed: true`: route back to Kakugyō with `mode: "next_step"`, carrying `feature_name`, `state_root`, `last_step_id`, `last_step_status: "completed"`.
-     - If `blocked: true` or refused: route back to Kakugyō with `mode: "replan_on_blocker"`, carrying the blocker reason.
+   - **(c)** For each returned envelope, read `task_completed`, `blocked`, `blocker`, and `agent_output`, then branch:
+     - If `envelope.task_completed == true` AND `envelope.blocked == false`: route back to Kakugyō with `mode: "next_step"`, carrying `feature_name`, `state_root`, `last_step_id`, `last_step_status: "completed"`, `last_step_output: envelope.agent_output`.
+     - If `envelope.blocked == true`: route back to Kakugyō with `mode: "replan_on_blocker"`, carrying `last_step_blocker.reason = envelope.blocker.reason` (verbatim), `last_step_blocker.detail = envelope.blocker.detail` (verbatim), `last_step_blocker.agent = envelope.blocker.agent`, and `last_step_output: envelope.agent_output`.
+     - If malformed (I-6 violation: `envelope.task_completed == false` AND `envelope.blocked == false`): treat as blocked and route to Kakugyō with `mode: "replan_on_blocker"`, setting `last_step_blocker.reason: "contract_violation"` and `last_step_blocker.detail: "envelope violated I-6: task_completed=false with blocked=false"`.
    - **(d)** Receive Kakugyō's response: a new `next_steps[]` batch (continue / expand / parallelize / re-route) OR `close_signal: true`.
    - **(e)** If `close_signal: true`, exit the loop. Otherwise loop back to (a).
 7. Synthesize the final answer from accumulated work products.
@@ -207,7 +210,7 @@ If the plan declares `state_root` (managed-workflow plans always do), every step
 
 ### Failure handling
 
-If any step returns `blocked: true`, halt that branch of the plan. Other independent branches (different `parallel_group`, no shared dependency) may continue. Surface the blocker in synthesis. Do NOT invent the missing output.
+If any step returns `blocked: true`, halt that branch of the plan. Other independent branches (different `parallel_group`, no shared dependency) may continue. Surface the blocker in synthesis using `envelope.blocker.reason` and `envelope.blocker.detail` (passed verbatim to Kakugyō as `last_step_blocker.*`). Do NOT invent the missing output.
 
 ## Skill Invocation (All Sources)
 

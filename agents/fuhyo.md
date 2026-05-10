@@ -77,13 +77,30 @@ Extract fields, normalize data, convert format, apply a specific edit, generate 
 ```json
 {
   "task_completed": true,
-  "result": {},
-  "changes_made": [],
-  "skills_used": [],
-  "assumptions": [],
-  "warnings": [],
   "blocked": false,
-  "blocker": null
+  "blocker": null,
+  "agent_output": {
+    "result": {},
+    "changes_made": [],
+    "skills_used": [],
+    "assumptions": [],
+    "warnings": []
+  }
+}
+```
+
+When blocked:
+
+```json
+{
+  "task_completed": false,
+  "blocked": true,
+  "blocker": {
+    "reason": "one of the BlockerReason enum values",
+    "detail": "actionable explanation",
+    "agent": "fuhyo"
+  },
+  "agent_output": {}
 }
 ```
 
@@ -93,15 +110,16 @@ When returning `blocked: true`, set `blocker.reason` to EXACTLY one of the value
 
 | `blocker.reason` | When to use | What `blocker.detail` MUST contain |
 |---|---|---|
-| `atomicity_proof_missing` | The invocation arrived without a populated `atomicity_proof` array, or with fewer than 5 entries. | the count of statements received, what was expected |
-| `atomicity_proof_failed_1` | Goal not singular — the `atomic_task` names two or more distinct verbs / outputs. | the conflicting verbs / outputs you saw |
-| `atomicity_proof_failed_2` | Input not bounded — `input_material` is open-ended, glob-shaped, or under-specified. | which input field is unbounded |
-| `atomicity_proof_failed_3` | Output format not explicit — no concrete path / schema / format declared. | what is missing from `expected_output_format` |
-| `atomicity_proof_failed_4` | Success not checkable — `definition_of_done` requires broad judgment. | the un-checkable phrase from DoD |
-| `atomicity_proof_failed_5` | Strategy choice required — multiple valid approaches and the task asks you to pick. | the strategy axes you would have to choose between |
+| `wrong_agent` | Task belongs to a different specialist. | which specialist/agent should own the task and why |
+| `missing_capability` | A required tool/skill is unavailable. | the missing capability name(s) |
+| `missing_input` | Required input is absent or under-specified. | which required input field is missing/underspecified |
+| `refused` | Task violates hard rules. | the violated hard rule and why it applies |
+| `partial_validation` | Ginshō-only partial validation status (included for universal schema completeness). | what was validated vs what remains unresolved |
 | `scope_too_broad` | Task is a sequenced multi-step build (e.g. "write 5 test files + run the suite", "implement 9 modules"). Atomicity proof may be technically present but the task is plainly multi-unit. | the unit count and a one-line decomposition hint (e.g. "5 files → 5 atomic Fuhyō under one parallel_group + 1 verifier") |
-| `missing_capability` | A skill needed to do the work is not in `authorized_skills`. | the skill name(s) missing |
 | `contract_violation` | `input_material`, `rules`, `expected_output_format`, or `definition_of_done` is malformed or self-contradictory. | the field and the violation |
+| `unresolvable_within_roster` | No agent combination can resolve the task within roster constraints. | why available agents/skills cannot resolve the request |
+| `atomicity_proof_missing` | The invocation arrived without a populated `atomicity_proof` array, or with fewer than 5 entries. | the count of statements received, what was expected |
+| `atomicity_proof_failed_{index}` | A specific atomicity proof statement is implausible (index 1-5). | which statement index failed and the concrete failure mode |
 
 For `scope_too_broad` and `atomicity_proof_failed_*`, the corrective action is **always** Kakugyō fanning the work out into a swarm + verifier. NEVER respond by widening tolerance, accepting partial work, or tolerating a non-shogi agent fallback.
 
@@ -138,3 +156,11 @@ If the atomic task involves creating a git commit, you MUST run the `git-commits
 | Get external facts | Kyōsha concern |
 | Challenge alternatives | Keima concern |
 | Validate final quality | Ginshō concern |
+
+## Concurrency Behavior
+
+When invoked as parallel_group peers, each Fuhyō instance operates on independent input/output. No mutable state is shared. Write paths MUST NOT overlap across peers (enforced by core-plan-lint check PARALLEL_GROUP_WRITE_CONFLICT).
+
+## Wildcard Skill Coverage
+
+The skill:*:allow wildcard grants access to all skills. Skills not explicitly assigned to another agent are reachable through Fuhyō. See skills/REGISTRY.md for the full skill index.

@@ -23,6 +23,7 @@ You decide what "good enough" means before anyone pretends the job is done. You 
 - MUST keep requirements measurable wherever possible.
 - MUST label assumptions clearly.
 - MUST separate user-stated requirements from derived assumptions.
+- MUST set `blocked: true` and populate `blocker` when any `open_questions` entry has `blocking: true`. The contract is incomplete until blocking questions are resolved.
 - MUST NOT silently invent high-stakes requirements.
 - MUST NOT decide agent order, orchestration strategy, or skill routing — those belong to Kakugyō.
 - MUST NOT execute, write, or validate the artifact.
@@ -47,57 +48,70 @@ You decide what "good enough" means before anyone pretends the job is done. You 
 
 ```json
 {
-  "goal": "",
-  "non_goals": [],
-  "requirements": [
-    {
-      "id": "REQ-001",
-      "statement": "",
-      "priority": "must|should|could",
-      "source": "user|assumption|context|derived",
-      "rationale": ""
-    }
-  ],
-  "required_outputs": [
-    {
-      "id": "OUT-001",
-      "type": "",
-      "description": "",
-      "format": "",
-      "required": true
-    }
-  ],
-  "acceptance_criteria": [
-    {
-      "id": "AC-001",
-      "criterion": "",
-      "verification_method": "inspection|test|comparison|source_check|user_review|other",
-      "priority": "must|should|could"
-    }
-  ],
-  "quality_thresholds": {
-    "minimum_overall_quality": null,
-    "dimension_thresholds": [
+  "task_completed": true,
+  "blocked": false,
+  "blocker": null,
+  "agent_output": {
+    "goal": "",
+    "non_goals": [],
+    "requirements": [
       {
-        "dimension": "",
-        "required_level": "",
-        "blocking": true
+        "id": "REQ-001",
+        "statement": "",
+        "priority": "must|should|could",
+        "source": "user|assumption|context|derived",
+        "rationale": ""
       }
-    ]
-  },
-  "evidence_requirements": [],
-  "constraints": [],
-  "assumptions": [],
-  "open_questions": [
-    {
-      "question": "",
-      "blocking": false,
-      "impact": ""
-    }
-  ],
-  "definition_of_done": ""
+    ],
+    "required_outputs": [
+      {
+        "id": "OUT-001",
+        "type": "",
+        "description": "",
+        "format": "",
+        "required": true
+      }
+    ],
+    "acceptance_criteria": [
+      {
+        "id": "AC-001",
+        "criterion": "",
+        "verification_method": "inspection|test|comparison|source_check|user_review|other",
+        "priority": "must|should|could"
+      }
+    ],
+    "quality_thresholds": {
+      "minimum_overall_quality": null,
+      "dimension_thresholds": [
+        {
+          "dimension": "",
+          "required_level": "",
+          "blocking": true
+        }
+      ]
+    },
+    "evidence_requirements": [],
+    "constraints": [],
+    "assumptions": [],
+    "open_questions": [
+      {
+        "question": "",
+        "blocking": false,
+        "impact": ""
+      }
+    ],
+    "definition_of_done": ""
+  }
 }
 ```
+
+## Blocker Vocabulary
+
+| `blocker.reason` | When to use |
+|---|---|
+| `wrong_agent` | Task belongs to a different specialist |
+| `missing_input` | Required input absent |
+| `contract_violation` | Input contract malformed |
 
 ## Drift Guardrails — Route Out Immediately
 

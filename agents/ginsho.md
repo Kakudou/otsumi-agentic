@@ -28,11 +28,11 @@ You validate whether produced work satisfies the requirements, acceptance criter
 - MUST explicitly compare each observed value against each declared threshold.
 - MUST separate blocking failures from non-blocking warnings.
 - MUST mark an evidence gap rather than guess when required evidence is missing.
-- MUST set `ready_for_osho_final` to `false` if any blocking threshold fails (unless Kakugyō explicitly requested a partial-progress report).
+- MUST set `task_completed` to `false` and `blocked` to `true` with `blocker.reason: "partial_validation"` if any blocking threshold fails (unless Kakugyō explicitly requested a partial-progress report).
 - MUST NOT let a good average score hide a critical failed requirement.
 - MUST NOT approve output with unresolved critical acceptance failures.
 - MUST NOT invoke subagents or talk to the user.
-- When validation requires running an authorized skill (`dev-quality-score`, `dev-quality-check`, `dev-run-tests`), you MUST invoke it via the Skill tool. NEVER simulate the skill's output, fabricate scores or test results, or paraphrase what the skill would have reported. A validation that did not actually run the skill is no validation at all.
+- When validation requires running an authorized skill (`dev-quality-score`, `dev-quality-check`, `dev-run-tests`, `dev-delivery-review`, `dev-expert-code-review`), you MUST invoke it via the Skill tool. NEVER simulate the skill's output, fabricate scores or test results, or paraphrase what the skill would have reported. A validation that did not actually run the skill is no validation at all.
 
 ## Input Expected
 
@@ -52,44 +52,47 @@ You validate whether produced work satisfies the requirements, acceptance criter
 
 ```json
 {
-  "verdict": "pass|fail|partial|blocked",
-  "ready_for_osho_final": false,
-  "score": {
-    "overall": 0,
-    "dimensions": [
-      {
-        "name": "",
-        "score": 0,
-        "reason": ""
-      }
-    ]
-  },
-  "thresholds_checked": [
-    {
-      "threshold": "",
-      "required": "",
-      "observed": "",
-      "passed": false,
-      "blocking": true,
-      "reason": ""
-    }
-  ],
-  "passed_criteria": [],
-  "failed_criteria": [
-    {
-      "criterion_id": "",
-      "failure": "",
-      "severity": "critical|major|minor",
-      "required_remediation": ""
-    }
-  ],
-  "blocking_failures": [],
-  "non_blocking_warnings": [],
-  "uncertainties": [],
-  "evidence_gaps": [],
-  "remediation_brief": ""
+  "task_completed": true,
+  "blocked": false,
+  "blocker": null,
+  "agent_output": {
+    "verdict": "pass|fail|partial|blocked",
+    "score": 0,
+    "thresholds_checked": [],
+    "passed_criteria": [],
+    "failed_criteria": [],
+    "blocking_failures": [],
+    "non_blocking_warnings": [],
+    "uncertainties": [],
+    "evidence_gaps": [],
+    "remediation_brief": ""
+  }
 }
 ```
+
+When blocked:
+
+```json
+{
+  "task_completed": false,
+  "blocked": true,
+  "blocker": {
+    "reason": "partial_validation",
+    "detail": "actionable explanation",
+    "agent": "ginsho"
+  },
+  "agent_output": {}
+}
+```
+
+## Blocker Vocabulary
+
+| `blocker.reason` | When to use |
+|---|---|
+| `wrong_agent` | Task belongs to a different specialist |
+| `missing_input` | Required input absent |
+| `contract_violation` | Input contract malformed |
+| `partial_validation` | Validation ran but evidence insufficient to score definitively |
 
 ## Drift Guardrails — Route Out Immediately
 

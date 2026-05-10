@@ -276,77 +276,82 @@ Same schema across all three modes; different fields populated. `initial_plan` r
 
 ```json
 {
-  "plan_id": "PLAN-001",
-  "response_type": "initial | continue | expand | parallelize | replan | close",
-  "request_type": "simple|composite|research|writing|execution|analysis|planning|validation|mixed|blocked",
-  "domains": [
-    {
-      "name": "",
-      "confidence": "high|medium|low",
-      "notes": ""
-    }
-  ],
-  "summary": "",
-  "missing_information": [
-    {
-      "question": "",
-      "blocking": true,
+  "task_completed": true,
+  "blocked": false,
+  "blocker": null,
+  "agent_output": {
+    "plan_id": "PLAN-001",
+    "response_type": "initial | continue | expand | parallelize | replan | close",
+    "request_type": "simple|composite|research|writing|execution|analysis|planning|validation|mixed|blocked",
+    "domains": [
+      {
+        "name": "",
+        "confidence": "high|medium|low",
+        "notes": ""
+      }
+    ],
+    "summary": "",
+    "missing_information": [
+      {
+        "question": "",
+        "blocking": true,
+        "reason": ""
+      }
+    ],
+    "can_proceed": true,
+    "selected_workflow": {
+      "name": null,
+      "source": "none|skill|instruction|context|user_request",
       "reason": ""
+    },
+    "state_root": null,
+    "macro_plan": [
+      {
+        "step_id": "S1",
+        "agent": "kinsho|kyosha|hisha|fuhyo|keima|ginsho",
+        "purpose": "",
+        "expected_skill": null,
+        "expandable": false
+      }
+    ],
+    "next_steps": [
+      {
+        "step_id": "S1",
+        "agent": "kinsho|kyosha|hisha|fuhyo|keima|ginsho",
+        "action_type": "requirements|research|writing|atomic_execution|challenge|validation|improvement_critique|other",
+        "purpose": "",
+        "depends_on_data": [],
+        "blocks_on_completion": [],
+        "parallel_group": null,
+        "atomicity_proof": null,
+        "input_contract": {},
+        "output_contract": {},
+        "authorized_skills": [],
+        "forbidden_actions": [],
+        "completion_gate": "",
+        "handoff_to": []
+      }
+    ],
+    "close_signal": false,
+    "challenge_policy": {
+      "enabled": false,
+      "agent": "keima",
+      "max_rounds": 0,
+      "challenge_axis": [],
+      "targets": []
+    },
+    "validation_policy": {
+      "enabled": false,
+      "agent": "ginsho",
+      "requires_kinsho_contract": true,
+      "blocking": true
+    },
+    "final_synthesis_instructions": {
+      "owner": "osho",
+      "style_notes": [],
+      "must_include": [],
+      "must_not_claim": []
     }
-  ],
-  "can_proceed": true,
-  "selected_workflow": {
-    "name": null,
-    "source": "none|skill|instruction|context|user_request",
-    "reason": ""
-  },
-  "state_root": null,
-  "macro_plan": [
-    {
-      "step_id": "S1",
-      "agent": "kinsho|kyosha|hisha|fuhyo|keima|ginsho",
-      "purpose": "",
-      "expected_skill": null,
-      "expandable": false
-    }
-  ],
-  "next_steps": [
-    {
-      "step_id": "S1",
-      "agent": "kinsho|kyosha|hisha|fuhyo|keima|ginsho",
-      "action_type": "requirements|research|writing|atomic_execution|challenge|validation|improvement_critique|other",
-      "purpose": "",
-      "depends_on_data": [],
-      "blocks_on_completion": [],
-      "parallel_group": null,
-      "atomicity_proof": null,
-      "input_contract": {},
-      "output_contract": {},
-      "authorized_skills": [],
-      "forbidden_actions": [],
-      "completion_gate": "",
-      "handoff_to": []
-    }
-  ],
-  "close_signal": false,
-  "challenge_policy": {
-    "enabled": false,
-    "agent": "keima",
-    "max_rounds": 0,
-    "challenge_axis": [],
-    "targets": []
-  },
-  "validation_policy": {
-    "enabled": false,
-    "agent": "ginsho",
-    "requires_kinsho_contract": true,
-    "blocking": true
-  },
-  "final_synthesis_instructions": {
-    "owner": "osho",
-    "style_notes": [],
-    "must_include": [],
-    "must_not_claim": []
   }
 }
 ```
@@ -439,16 +444,21 @@ When any smell triggers, the rewrite is a fan-out swarm + a sequential verifier,
 
 ## Refusal Handling (`replan_on_blocker` mode)
 
-Map the `last_step_blocker.reason` to a re-route:
+Map the `last_step_blocker.reason` to a re-route.
+`blocker.reason` values come from the S2 canonical `BlockerReason` enum. Agents MUST NOT invent new reason strings.
 
 | Blocker reason | Diagnosis | Re-route |
 |---|---|---|
-| `atomicity_proof_failed_{index}` (Fuhyō) | The step was not actually atomic; one of the 5 tests fails. | Decompose into smaller atomic sub-units. Each gets a fresh `atomicity_proof`. Return as `next_steps[]` with `parallel_group` where independence allows. |
-| `scope_too_broad` (Fuhyō) | Multi-step build assigned to one Fuhyō call. | Same as above — decompose into per-skill atomic units. |
-| `wrong_agent` (any specialist) | Agent role does not match the work. | Re-route per stage→agent table OR Agent Selection Guide. Return new step with corrected `agent` field. |
-| `missing_capability` (any) | The agent's authorized skills do not include what's needed. | Either (a) widen `authorized_skills` for this step, or (b) re-route to an agent that owns the capability. NEVER reach outside the shogi roster. |
-| `contract_violation` (any) | Input contract was malformed. | Fix the input_contract and re-emit the step. |
-| `unresolvable_within_roster` | No shogi agent fits AND user input is needed. | Return `response_type: "replan"` with `next_steps: []` and populate `missing_information` so Ōshō can ask the user. |
+| `wrong_agent` | Agent role does not match the work. | Reroute the step to the correct specialist per stage→agent table or Agent Selection Guide. |
+| `missing_capability` | Required capability is not available on the current step/agent. | Check whether capability exists elsewhere on the shogi roster; if not, return `unresolvable_within_roster` for Ōshō escalation. |
+| `missing_input` | A required input is absent. | Trace the source: either a predecessor step failed to produce it, or mark it in `missing_information` for Ōshō to request from user. |
+| `refused` | Task violates the current agent's hard rules. | Redesign the step contract to fit hard rules or reassign to the correct specialist. |
+| `partial_validation` | Ginshō reported evidence gaps or partial pass. | Identify which predecessor output must be regenerated and replan from that point. |
+| `scope_too_broad` | Multi-step build was assigned to one atomic step. | Decompose into N atomic sibling steps under a `parallel_group`, plus a sequential verifier when needed. |
+| `contract_violation` | Input contract was malformed or self-contradictory. | Fix the input contract shape and re-emit the corrected step. |
+| `unresolvable_within_roster` | No shogi agent can complete the work within current constraints. | Return to Ōshō for user escalation; do not continue replanning inside roster. |
+| `atomicity_proof_missing` | Fuhyō step was emitted without a valid 5-statement proof. | Populate all 5 `atomicity_proof` statements before reissuing the step. |
+| `atomicity_proof_failed_{index}` | A specific atomicity proof statement is implausible for the step. | Fix that proof statement or split the step further into smaller atomic units and reissue. |
 
 Forbidden re-routes: `general-purpose`, `Task`, `claude-code`, any non-shogi agent name. Those do not exist on this board.
 
@@ -469,6 +479,10 @@ Three orthogonal fields, NOT interchangeable:
 | **`depends_on_data: ["Sx"]`** | Sx's output is *consumed* as input to this step. Y cannot start until Sx is complete AND its output is available. Use for: pipeline-stage-N reads pipeline-stage-(N-1) artifact; Ginshō reads Kinshō contract; etc. |
 | **`blocks_on_completion: ["Sx"]`** | Hard ordering with NO data flow. Y must start after Sx finishes, but Y does not consume Sx's output. Use for: side-effect ordering (e.g. don't run docs stage until refactor stage commits); resource locks. Rare. |
 | **`parallel_group: "G1"`** | Steps with the same group ID MAY run concurrently. `null` = sequential by default. Use for: Kyōsha research + Hisha drafting on the same topic; multi-feature pipelines. NEVER use for steps that share a `state_root` write path. |
+
+### Concurrency Contract for parallel_group
+
+Steps sharing a `parallel_group` MUST satisfy: (1) no two peers write to the same path, (2) no intra-group data dependencies (`depends_on_data` MUST NOT reference a sibling), (3) all inputs fully resolved before dispatch. The runtime MAY execute peers concurrently; the plan MUST be safe under concurrency. These constraints are enforced by `core-plan-lint` checks `PARALLEL_GROUP_WRITE_CONFLICT` and `PARALLEL_GROUP_DATA_DEPENDENCY`.
 
 ### Atomicity proof (Fuhyō steps only)
 
