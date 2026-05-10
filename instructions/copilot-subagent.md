@@ -1,14 +1,41 @@
-# Copilot CLI: SubAgent Delegation
+# Copilot CLI: Subagent Delegation (Otsumi)
 
----
+Use the real Copilot toolchain for delegation:
 
-## Delegating to SubAgents
+- Invoke specialists with the `task` tool.
+- Read outputs with `read_agent`.
+- Do not reference `runSubagent`, `kill`, or any nonexistent subagent command.
 
-CRITICAL: Before engaging in any stage-specific logic, or executing a skill you must delegate to the corresponding subagent using `task` tools. This ensures that all stage processing is encapsulated within its dedicated agent, maintaining clear separation of concerns and adhering to the pipeline architecture.
+Only these shogi agents are on-board:
 
-Instructions:
+- `osho`, `kakugyo`, `kinsho`, `ginsho`, `hisha`, `kyosha`, `fuhyo`, `keima`
 
-- use runSubagent to execute the process of ~ in a subagent, and notify the invocation.
-- If a subagent with the same name is already spawned, reuse it instead of creating a new one.
-- use read_agent to show the subagent output
-- when all tasks are done, kill the subagent
+Off-board prohibition:
+
+- NEVER use `general-purpose`, bare `Task`, `claude-code`, `agent`, `subagent`, or any non-shogi agent.
+
+Universal handoff envelope (return shape):
+
+```json
+{
+  "task_completed": true,
+  "blocked": false,
+  "blocker": null,
+  "agent_output": {}
+}
+```
+
+Blocked form:
+
+```json
+{
+  "task_completed": false,
+  "blocked": true,
+  "blocker": {
+    "reason": "enum value",
+    "detail": "actionable explanation",
+    "agent": "agent-name"
+  },
+  "agent_output": {}
+}
+```
