@@ -26,7 +26,8 @@ Turn approved behavior into failing (RED) Python tests only. Keep tests behavior
 
 | `test_style` | Behavior |
 |---|---|
-| `auto` | Use pytest-bdd when feature files or pytest-bdd conventions exist; otherwise plain pytest |
+| `auto` | Resolve style by checking for existing `.feature` files and pytest-bdd dependencies; use pytest-bdd when found, otherwise plain pytest |
+| `pytest-bdd` | Use pytest-bdd feature/scenario and step-definition style |
 | `pytest` | Use plain pytest with `_given/_when/_then` helper organization |
 
 ## Execution Sequence (All Modes)

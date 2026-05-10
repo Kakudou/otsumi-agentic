@@ -30,7 +30,7 @@ Implement the minimum coherent Python change set that makes approved RED tests p
 
 - `feature_name` - required
 - `test_file` - required
-- `steps_file` - required
+- `steps_file` - optional. Required for pytest-bdd mode (provides step definition files). Omit for raw-pytest mode where test files contain assertions directly.
 - `support_files` - optional list
 - `constraints` - optional list
 - `correction_brief` - optional, present when the agent is re-invoking after a rule violation or failed attempt

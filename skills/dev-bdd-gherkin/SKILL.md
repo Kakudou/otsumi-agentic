@@ -10,7 +10,11 @@ Optimize for deterministic, approval-gated behavior: draft scenarios first, coll
 
 ## Usage
 
-`/dev-bdd-gherkin {feature-name}`
+`/dev-bdd-gherkin --intent spec|trap {feature-name}`
+
+## Parameters
+
+- `--intent` (required): `spec` activates Stage-1 (scenario drafting from contract), `trap` activates Stage-2 (adversarial trap analysis on approved scenarios).
 
 ## Hard Rules
 

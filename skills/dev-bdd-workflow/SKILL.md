@@ -160,7 +160,7 @@ Keep pipeline progress visible as a single canonical execution record:
 
 ## User Interaction Protocol
 
-Ōshō is the ONLY agent that talks to User. Fuhyō workers return output to Ōshō; Ōshō presents and collects decisions.
+Ōshō is the ONLY agent that talks to User. stage workers return output to Ōshō; Ōshō presents and collects decisions.
 
 Use this framed display format for scenario approvals, trap reviews, scorecard summaries, and remediation summaries:
 
@@ -177,7 +177,7 @@ Actions: <explicit allowed actions>
 
 ## Stage Agent Contract
 
-Each stage Fuhyō MUST follow this scaffold:
+Each stage executor MUST follow this scaffold:
 
 1. Read `.otsumi/<feature-name>/pipeline.json`.
 2. Confirm owned stage exists in `stages`.
@@ -223,9 +223,9 @@ When quality scoring returns remediation required, dispatch by failing dimension
 
 | Dimension | Route |
 |---|---|
-| `linting`, `formatting`, `import_hygiene`, `type_safety`, `architecture` | Fuhyō via `dev-python-refactorer` |
-| `test_quality` | Fuhyō via `dev-python-test-generator` and re-run Stage-3 |
-| `docs_quality` | Fuhyō via `doc-decision-record` |
+| `linting`, `formatting`, `import_hygiene`, `type_safety`, `architecture` | Executor via `dev-python-refactorer` |
+| `test_quality` | Executor via `dev-python-test-generator` and re-run Stage-3 |
+| `docs_quality` | Executor via `doc-decision-record` |
 
 ## Pre-Handoff Check
 
@@ -239,7 +239,7 @@ Before Stage-1 routing:
 
 ## Gold Plating Review Protocol
 
-When a Stage-4 Fuhyō run (executing `dev-python-implementer`) returns non-empty `gold_plating_suppressed`, Ōshō must present each item to User before writing stage output.
+When a Stage-4 executor run (executing `dev-python-implementer`) returns non-empty `gold_plating_suppressed`, Ōshō must present each item to User before writing stage output.
 
 Per item, User responds with exactly one action:
 

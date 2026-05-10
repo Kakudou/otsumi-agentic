@@ -16,6 +16,7 @@ Route language-bound stages to adapter skills. Preserve adapter routing for Stag
 - NEVER infer language from natural language.
 - NEVER route a stage that is not in the active workflow state.
 - NEVER call an adapter that does not exist.
+- MUST return `contract_violation` blocker for any `stage+language` combination not present in the routing table.
 - NEVER transform payload semantics — only route and normalize.
 
 ## Routing Table
@@ -26,10 +27,17 @@ Route language-bound stages to adapter skills. Preserve adapter routing for Stag
 | `python` | `stage-04` | `/dev-python-implementer` |
 | `python` | `stage-05` | `/dev-python-refactorer` |
 
+## Language Support Status
+
+- Python is the only currently supported language.
+- Language adapters for additional languages are planned but not yet manifest-driven.
+- To extend support, add new `dev-{lang}-*` skill triplets and register them in this routing table.
+
 ## Steps
 
 1. Validate `stage`, `language_id`, and payload.
 2. Check the stage is active when pipeline state is provided.
 3. Resolve adapter from the table.
-4. Invoke the adapter with the original payload plus normalized routing fields.
-5. Return the adapter result unchanged except for a routing envelope.
+4. If no adapter matches the `stage+language_id` combination, return a blocker with reason `contract_violation` and detail listing the unsupported combination.
+5. Invoke the adapter with the original payload plus normalized routing fields.
+6. Return the adapter result unchanged except for a routing envelope.
