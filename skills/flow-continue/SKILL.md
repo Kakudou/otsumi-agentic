@@ -25,7 +25,7 @@ Execute deterministic resume logic against `.otsumi/{feature-name}/pipeline.json
 ## Core Procedure
 
 1. Read `.otsumi/{feature-name}/pipeline.json`.
-2. Confirm status is `paused` or resumable.
+2. Confirm status is `paused`.
 3. Identify `next_stage`.
 4. If resuming after user-owned implementation/refactor:
    - inspect changed files
@@ -45,6 +45,7 @@ Stage output schemas are canonically defined by `dev-bdd-workflow`; this skill m
 ### Step 3 Confirmation Checks (Required)
 
 When validating resumability from `.otsumi/{feature-name}/pipeline.json`, confirm all conditions below:
+These checks enforce S4 transition legality for `pipeline.continued` and must pass before applying T5/T6.
 
 - `mode` is `assisted`
 - `status` is `paused`
@@ -54,9 +55,19 @@ When validating resumability from `.otsumi/{feature-name}/pipeline.json`, confir
 - `stages` list exists and is non-empty
 - `next_stage` exists (or pipeline is eligible for closure when stages are exhausted)
 
+## State Machine Reference
+
+This skill implements S4 transition **T5**: `paused → pipeline.continued → running`.
+
+- Guard: `mode=assisted` AND `next_stage` exists AND required validation passes
+- Also covers **T6**: `paused → pipeline.continued → closed` (when no stages remain)
+- A `flow-continue` against a `running` pipeline MUST be refused (running pipelines don't need continuation)
+
 ### Contiguous Block Materialization Rule
 
 If `next_stage` starts a contiguous block of Stage-04/Stage-05, materialize every stage in that block, in order, before advancing.
+
+> Domain-agnostic boundary: stage-specific schemas and resume logic are owned by the stage adapter skill referenced by the pipeline stage definition (for example, `dev-stage-router`), not by `flow-continue`. `flow-continue` remains a lifecycle skill that delegates stage-specific resume behavior to that adapter.
 
 ### Stage-04 Assisted Mode Procedure (6 Steps)
 

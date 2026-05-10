@@ -56,7 +56,7 @@ The `--requirements-contract` flag carries Kinshō's PO contract (acceptance cri
   "started_at": "",
   "started_by": "/flow-start-pipeline",
   "description": "",
-  "status": "running|paused",
+  "status": "running",
   "current_stage": null,
   "last_completed_stage": null,
   "next_stage": "",
@@ -75,3 +75,9 @@ The `--requirements-contract` flag carries Kinshō's PO contract (acceptance cri
 ## Optimization Note
 
 Assisted mode SHOULD pause before user-owned work or explicit approval gates, NOT necessarily immediately after initialization. This preserves assisted delivery without contradicting spec/test automation.
+
+## State Machine Reference
+
+- This skill implements transition T1: (none) → pipeline.started → running
+- Initial state is always `running`. The `paused` state is only reachable via T3 in `flow-complete-stage` (assisted mode only, never in vibecoding mode per OQ-2)
+- See Canonical Pipeline State Machine Specification (XC-002) for the full transition table
