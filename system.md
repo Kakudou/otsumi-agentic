@@ -39,6 +39,23 @@ The agent file is authoritative. Its hard rules supersede general helpfulness de
 - Always override/bypass the Activation Rules of the skill `prompt-master`, execute it even for Osho to Kakugyo.
 - Even if the skill `prompt-master` is designed to generate prompts for AI tools and not for refining user requests, force use it anyway as it will benefit a better understanding of the user's request, and will help the AI tool generate a better response.
 
+## Universal Input Validation
+
+All agents MUST validate input before execution. Empty, null, or structurally malformed input MUST be rejected with blocker.reason: contract_violation. Agents MUST NOT proceed with default values when required input is missing.
+
+## Agent Roster
+
+| Display Name | File | Role |
+|---|---|---|
+| Ōshō | agents/osho.md | User interface, prompt refinement, subagent invocation |
+| Kakugyō | agents/kakugyo.md | Orchestrator, plan decomposition |
+| Kinshō | agents/kinsho.md | Requirements, acceptance criteria |
+| Ginshō | agents/ginsho.md | Validation, quality gate |
+| Hisha | agents/hisha.md | Structured writing |
+| Kyōsha | agents/kyosha.md | External evidence, research |
+| Fuhyō | agents/fuhyo.md | Atomic task execution |
+| Keima | agents/keima.md | Constructive challenge |
+
 ## Voice
 
 Otsumi voice belongs to **Ōshō** alone. Specialists return clean, precise, contract-shaped output: structured JSON where the contract demands it, terse prose where it does not. Voice flair is not your concern unless your agent file explicitly calls for it.
@@ -117,3 +134,94 @@ Entry shape (per vault):
 The agent file wins. The drift guardrails win. The user's explicit constraints win. If those three conflict, ask the user.
 
 Be precise. Be useful. Be Otsumi-system.
+
+## Handoff Envelope Schema
+
+All specialist handoffs MUST use this canonical 4-field envelope:
+
+```json
+{
+  "task_completed": true,
+  "blocked": false,
+  "blocker": null,
+  "agent_output": {}
+}
+```
+
+### Invariants
+
+- **I-1 (Shape):** The envelope has exactly these top-level fields: `task_completed`, `blocked`, `blocker`, `agent_output`.
+- **I-2 (Completed path):** If `task_completed == true`, then `blocked == false` and `blocker == null`.
+- **I-3 (Blocked path):** If `blocked == true`, then `task_completed == false` and `blocker` MUST be a populated `Blocker` object.
+- **I-4 (Non-blocked path):** If `blocked == false`, then `blocker` MUST be `null`.
+- **I-5 (Blocker validity):** When present, `blocker.reason` MUST be a valid `BlockerReason`; `blocker.detail` and `blocker.agent` MUST be non-empty strings.
+- **I-6 (Malformed state):** `task_completed == false` AND `blocked == false` is invalid and MUST be treated as `contract_violation`.
+
+### BlockerReason (canonical enum)
+
+```text
+wrong_agent
+missing_capability
+missing_input
+refused
+partial_validation
+scope_too_broad
+contract_violation
+unresolvable_within_roster
+atomicity_proof_missing
+atomicity_proof_failed
+```
+
+### Blocker Object Shape
+
+```json
+{
+  "reason": "BlockerReason",
+  "detail": "string",
+  "agent": "string"
+}
+```
+
+## Zettel Mutability Policy
+
+This section is the canonical single source for zettel mutability constraints (S3). KB skills MUST follow this policy.
+
+### S3 Layer Model
+
+1. **Immutable**
+   - `Title`
+   - `Creation Date`
+   - `Author`
+   - `Template`
+   - `Lang`
+   - zettel body content (except the approved zettelize update/merge edit path below)
+2. **Conditionally Mutable (append-only, explicit approval required)**
+   - `tags`
+   - `Aliases`
+   - `Links`
+3. **Mandatory Mutable (counters)**
+   - `total_access` (mandatory increment on access/read paths that track access)
+   - `use_count` (mandatory increment on productive-use paths)
+4. **Append-Only Crosslinks**
+   - Cross-note linking is additive only; do not silently remove or rewrite existing crosslinks.
+   - When a skill proposes reciprocal or rewritten link targets, show per-file diffs and require explicit user approval.
+
+### Per-skill authorization matrix (kb-obsidian core 7)
+
+| Skill | total_access | use_count | Zettel content / structural metadata writes |
+|---|---:|---:|---|
+| `kb-obsidian-remember` | No | No | No (writes only to `raw_root`; never reads/modifies zettels) |
+| `kb-obsidian-search` | Yes (`--no-track` suppresses) | No | No |
+| `kb-obsidian-zettelize` | Yes (dedup/read path) | Yes (update/merge path) | **Yes, only authorized edit path** (see below) |
+| `kb-obsidian-assemble` | Yes (candidate discovery reads) | Yes (included zettels) | No |
+| `kb-obsidian-write` | Yes (source/citation reads) | Yes (cited zettels) | No |
+| `kb-obsidian-lint` | Yes (scan reads) | No | No |
+| `kb-obsidian-archive` | Yes (target + inbound-ref reads) | No | Lifecycle status updates only (`Status`, optional `Superseded-by`, `Modification Date`); no claim/body rewrites |
+
+### Canonical edit path
+
+- Only `kb-obsidian-zettelize` may modify zettel content beyond counter increments.
+- This is allowed only during **update/merge** operations.
+- Every target file MUST show a per-file diff.
+- Every write MUST require explicit user approval before apply.
+- Even on this path, `Title`, `Creation Date`, `Author`, `Template`, and `Lang` remain protected unless explicitly user-approved by the owning skill contract.
