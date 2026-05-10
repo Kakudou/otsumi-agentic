@@ -24,7 +24,8 @@ Create production-grade Excalidraw output with a cyberpunk-terminal design syste
 ## Mandatory Prerequisites
 
 1. Apply `/design-frontend` principles first for creative rigor and anti-slop design thinking.
-2. Read `references/excalidraw-render.md` before generating JSON.
+2. Read `{skill_root}/references/excalidraw-render.md` before generating JSON.
+   - Note: reference paths in this skill are relative to the skill directory, not the project root.
 
 ## Mode Classification
 

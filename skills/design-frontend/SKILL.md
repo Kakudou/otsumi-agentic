@@ -36,3 +36,11 @@ Commit to:
 - constraints: framework, performance, accessibility
 
 Tone examples: brutally minimal, maximalist chaos, retro-futuristic, organic, luxury, playful, editorial, brutalist, art deco, pastel, industrial.
+
+## Scope Boundary
+
+This skill is for design-phase generation only: prototyping, visual direction, and component exploration.
+
+Development-phase implementation belongs to dev-* skills: production code hardening, test coverage, and CI integration.
+
+Output from `design-frontend` is a design artifact, not production-ready code.

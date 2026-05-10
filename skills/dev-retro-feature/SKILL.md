@@ -156,6 +156,25 @@ draft_specs:
         confidence: high | medium | low
 ```
 
+## Handoff to dev-bdd-gherkin
+
+When routing reverse-engineered output into `dev-bdd-gherkin`, map `draft_specs` into the BDD skill's scenario input set as follows:
+
+| `draft_specs` field | `dev-bdd-gherkin` handoff field | Transformation required |
+|---|---|---|
+| `feature_candidate` | `feature_name` | Use canonical kebab slug. If already kebab-case, pass through unchanged. |
+| `feature_title` | `Feature` title seed | Pass through as the human-readable feature title candidate. |
+| `actor`, `intent`, `value` | Feature narrative (`As a / I want / So that`) | Pass through in order; omit any line where source value is empty. |
+| `background_steps[]` | `Background` steps | Preserve order and step keywords (`Given`/`And`) exactly. |
+| `scenarios[].name` | Scenario name | Pass through unchanged. |
+| `scenarios[].type` | Scenario form | Map `scenario` -> `Scenario`; `scenario_outline` -> `Scenario Outline`; `multi_step_invariant` -> `Scenario` (keep multi-step structure in steps). |
+| `scenarios[].steps[]` | Scenario step list | Preserve keyword (`Given/When/Then/And/But`) and text verbatim in sequence. |
+| `scenarios[].examples` | `Examples` block | If non-null, convert into a valid Gherkin `Examples` table; if null, omit. |
+| `scenarios[].source_ref` | Traceability metadata | Carry into approval artifacts/stage records; do not render as a Gherkin step. |
+| `scenarios[].confidence` | Review priority metadata | Carry for approval ordering/risk review; do not render as a Gherkin step. |
+
+Minimum transfer unit: one `draft_specs[]` item becomes one `dev-bdd-gherkin` feature draft input containing feature metadata, optional background, and scenario set.
+
 ## Approval Interaction Protocol
 
 Execution ownership:

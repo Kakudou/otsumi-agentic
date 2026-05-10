@@ -23,6 +23,10 @@ No additional flags required. The skill drives the interactive wizard.
 
 If companion skills are unavailable, execute equivalent local commands and report the exact commands used.
 
+## Relationship to BDD Pipeline
+
+This skill is a pre-pipeline scaffolding tool. Generated connector code should be onboarded into the BDD pipeline (dev-bdd-workflow) for behavioral validation and quality scoring.
+
 ## Hard Rules
 
 - NEVER generate code before completing the full wizard.

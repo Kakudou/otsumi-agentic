@@ -24,6 +24,7 @@ Verify runtime readiness before any implementation, tests, linting, formatting, 
 1. Resolve `language_id` from explicit flag or persisted workflow state.
 2. Inspect project configuration:
    - Python: `pyproject.toml`, `setup.py`, `setup.cfg`, `.flake8`, `mypy.ini`, lockfiles, virtualenvs
+   - Extensibility note: virtualenv/venv handling, `pip` dependency flow, and `pytest` discovery are Python-specific; generalize this inspection point when adding future language adapters.
 3. Detect test/quality tools.
 4. Verify command availability.
 5. If setup changes are needed, propose them BEFORE applying.

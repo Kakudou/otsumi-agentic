@@ -22,6 +22,10 @@ Calling `git commit` via raw bash without following this discipline (group → a
 
 If the agent is not authorized for `git-commits`, it MUST return `blocked` instead of shelling out a raw commit.
 
+## Pipeline Awareness (Optional)
+
+When `state_root` is supplied as input, SHOULD append a commit event to `{state_root}/events.json` via `core-atomic-log` after each successful commit. This makes commits visible to the workflow audit trail.
+
 ## Hard Rules
 
 - ALWAYS ask and wait for user go-ahead before committing, giving time to review/edit files first.
