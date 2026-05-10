@@ -32,3 +32,18 @@ Recover from a mistyped, moved, or renamed command — return a correction witho
    - alternatives
    - reason
    - whether user confirmation is required
+
+## Output Contract
+
+Return a structured JSON object:
+
+```json
+{
+  "corrected_command": "string",
+  "confidence": "high | medium | low",
+  "original_input": "string",
+  "explanation": "string",
+  "alternatives": ["string"],
+  "requires_confirmation": true
+}
+```

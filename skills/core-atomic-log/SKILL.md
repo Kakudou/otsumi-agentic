@@ -36,7 +36,7 @@ Append exactly one event to an append-only log while preserving full history.
 - `$3` is a required meaningful summary string built by the caller from stage output data.
 - It must carry signal, not a timestamp, not a label, and not be empty.
 
-## Primary Flow (6 Steps)
+## Primary Flow (6 Steps, Summary (non-binding))
 
 1. Resolve log location: `.otsumi/{scope-name}/events.json` (workflow, pipeline, or generic scope).
 2. If the file does not exist, initialize it as `[]`.

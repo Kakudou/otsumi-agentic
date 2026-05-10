@@ -1,11 +1,13 @@
 ---
 name: core-backlog
-description: "List planned feature or task records produced by workflow escalation, without starting them automatically."
+description: "Read and manage planned feature or task records produced by workflow escalation, without starting them automatically."
 ---
 
 # Core Backlog
 
-List planned work records — read-only.
+Read and manage planned work records without executing them.
+
+Record creation source: planned feature records are created by the `dev-bdd-workflow` skill's Feature Backlog Protocol (recorded by Kakugyō as `.otsumi/<feature-name>-planned.json`).
 
 ## Usage
 
