@@ -37,3 +37,17 @@ Provide reliable test evidence for RED/GREEN workflow gates.
    - `RED` if tests fail as expected
    - `GREEN` if all required tests pass
    - `ERROR` if infrastructure/collection failed
+
+## Output Contract
+
+```json
+{
+  "test_command": "string — the command that was executed",
+  "status": "RED|GREEN — overall test suite result",
+  "collected": "number — total tests collected",
+  "passed": "number — tests passed",
+  "failed": "number — tests failed",
+  "errors": "string[] — failure messages/stack traces",
+  "execution_time": "string — duration of test run"
+}
+```

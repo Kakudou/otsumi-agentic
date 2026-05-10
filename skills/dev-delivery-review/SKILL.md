@@ -30,6 +30,8 @@ Evaluate whether delivered work is coherent, maintainable, scoped, and ready for
 
 ## Output
 
+Scores use the Otsumi Scoring Rubric (1-5). See dev-quality-score/SKILL.md for the canonical scale definition.
+
 ```json
 {
   "architecture": {"score": 0, "evidence": []},

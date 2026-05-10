@@ -108,26 +108,27 @@ minor_issues:
 strengths:
   - <what is already solid>
 expert_scorecard:
-  correctness: 0-5
-  maintainability: 0-5
-  simplicity: 0-5
-  performance: 0-5
-  reliability: 0-5
-  observability: 0-5
-  test_strength: 0-5
-  security: 0-5
+  correctness: 1-5
+  maintainability: 1-5
+  simplicity: 1-5
+  performance: 1-5
+  reliability: 1-5
+  observability: 1-5
+  test_strength: 1-5
+  security: 1-5
 ```
 
-## Scoring Rubric (0-5)
+## Scoring Rubric (1-5)
+
+Scoring uses the canonical Otsumi Scoring Rubric defined in dev-quality-score/SKILL.md.
 
 | Score | Meaning |
 |-------|---------|
-| **5** | Exceptional — no issues, production-ready |
-| **4** | Solid — minor issues, acceptable |
-| **3** | Adequate — moderate issues, blocks closure |
-| **2** | Below standard — significant issues, requires remediation |
-| **1** | Poor — fundamental problems, major rework |
-| **0** | Absent — missing or non-functional |
+| **5** | Exceptional (outstanding, production-ready) |
+| **4** | Strong (good quality, minor improvements possible) |
+| **3** | Adequate (meets minimum bar, minor issues) |
+| **2** | Below Expectations (significant gaps, must address) |
+| **1** | Failing (critical issues, blocks release) |
 
 ## Review Rules
 

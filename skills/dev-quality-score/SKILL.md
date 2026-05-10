@@ -41,17 +41,17 @@ Your scoring is gatekeeping logic, not advisory prose.
 
 Default threshold: every dimension MUST be at least **4/5** unless the workflow defines otherwise.
 
-## Scoring Rubric (1-5 Named Scale)
+## Otsumi Scoring Rubric (Canonical)
 
-Every dimension is scored 1–5 using the same named rubric:
-
-| Score | Name | Criteria |
+| Score | Label | Description |
 |---|---|---|
-| **5** | Exemplary | No issues found. Meets or exceeds standards. Production-ready without caveats. |
-| **4** | Good | Minor issues only. Acceptable for production. |
-| **3** | Needs Work | Moderate issues present. Blocks closure. |
-| **2** | Poor | Significant issues. Requires remediation. |
-| **1** | Critical | Fundamental problems. Major rework needed. |
+| 1 | Failing | Fundamental problems; major rework required |
+| 2 | Below Expectations | Significant gaps that must be addressed before acceptance |
+| 3 | Adequate | Baseline expectations met with acceptable quality |
+| 4 | Strong | High quality with clear strengths beyond minimum expectations |
+| 5 | Exceptional | Outstanding quality; exemplary across evaluated dimensions |
+
+This is the canonical scoring rubric for all Otsumi quality evaluations. Other scoring skills (dev-delivery-review, dev-expert-code-review) MUST cross-reference this definition.
 
 The minimum threshold for closure is **4/5 on every dimension**. A single dimension at **3/5 blocks closure regardless of overall average**.
 

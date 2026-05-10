@@ -33,3 +33,14 @@ Collect objective quality evidence before final scoring or delivery review.
 2. Resolve commands from project config.
 3. Run each available dimension.
 4. Report pass/fail/warning with evidence.
+
+## Output Contract
+
+```json
+{
+  "status": "pass|fail|warning",
+  "issues": [{"file": "", "rule": "", "severity": "error|warning|info", "line": 0, "message": ""}],
+  "summary": "",
+  "tools_run": []
+}
+```
