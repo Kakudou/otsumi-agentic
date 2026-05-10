@@ -51,7 +51,7 @@ This skill is a **librarian, not a writer**:
 - MUST NEVER remove an existing section that the user wrote between runs.
 - MUST render unanswered gaps as Obsidian `> [!TODO]` callout blocks. NEVER render gaps as plain prose sentences.
 - MUST ensure the `## Sources` footer and the `Links:` frontmatter list reference the same zettel set — no extras in either direction.
-- NEVER mutate any zettel. This skill is read-only against `zettel_root`.
+- Zettel content and structural metadata are immutable per the Zettel Mutability Policy (S3). Counter fields (total_access, use_count) are the sole permitted writes to existing zettels and are mandatory on access.
 - NEVER overwrite an existing resource note without an explicit diff approval.
 - NEVER `git add`, `git commit`, or `git push`.
 - NEVER pad the body with paraphrased zettel content. If a zettel's content is needed inline, EMBED it (`![[zettel]]`), do not retype it.
@@ -67,15 +67,17 @@ This skill is a **librarian, not a writer**:
 
 ### 2. Discover candidate zettels
 
-1. List `zettel_root`.
-2. Derive topic-candidate tags from the `{topic}` (lowercase, hierarchical where natural). Combine with any `--tags` filter.
-3. Score every zettel against:
+1. MUST invoke `kb-obsidian-search` for initial candidate discovery before applying local scoring. Pass the topic, relevant tags, and any temporal constraints to `kb-obsidian-search`. Use its results as the candidate set for subsequent scoring and filtering.
+2. List `zettel_root`.
+3. Before composing, MUST scan `resources_root` for existing resource notes with related titles or tags to avoid duplicate assembly and surface thematic overlap.
+4. Derive topic-candidate tags from the `{topic}` (lowercase, hierarchical where natural). Combine with any `--tags` filter.
+5. Score every zettel against:
    - Title / Aliases match
    - tag intersection
    - body overlap with the topic
    - `Lang` filter (if `--lang`)
-4. For each zettel read during the discovery scan, increment its `total_access` frontmatter field by 1. This records that the zettel was accessed as part of candidate discovery.
-5. Build `candidate_set` ordered by relevance score with explicit per-zettel reasoning:
+6. For each zettel read during the discovery scan, increment its `total_access` frontmatter field by 1. This records that the zettel was accessed as part of candidate discovery.
+7. Build `candidate_set` ordered by relevance score with explicit per-zettel reasoning:
    ```
    - "[[Indian Attack opening principles]]"
        title_match: strong
@@ -169,7 +171,7 @@ Return:
 - `derived_resource_frontmatter` warning if `resource_template` was `null`
 - if the target path resolves under a directory listed as a submodule in the vault's safety caveats, emit a submodule write disclosure unconditionally
 - reminder that no git operation was performed
-- reminder that no zettels were mutated
+- reminder that no zettel content or metadata was modified (counter increments are permitted per S3)
 
 ## Validation
 
@@ -179,7 +181,7 @@ Before claiming success:
 - [ ] Every body sentence is either: a section heading, a connective sentence that names without claiming, a wikilink, an embed, or a TODO callout.
 - [ ] No factual / claim-bearing prose was generated. No paraphrased zettel content was inlined.
 - [ ] `Sources` footer matches `Links:` frontmatter (same set, no extras).
-- [ ] No zettel was modified.
+- [ ] No zettel content or metadata was modified (counter increments are permitted per S3).
 - [ ] Gap report was presented; user choice (`proceed` / `abort` / `zettelize first`) was honored.
 - [ ] If `resource_template` was `null`, the missing-template gap was surfaced.
 - [ ] No git operation was performed.

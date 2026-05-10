@@ -162,6 +162,8 @@ Canonical event types for this skill family:
 | `lint.completed` | kb-obsidian-lint | `checks={n} findings={n} check-ids={id1,id2,...}` |
 | `write.completed` | kb-obsidian-write | `output={filename} words={n}` |
 | `archive.completed` | kb-obsidian-archive | `target={filename} status={status}` |
+| `config.completed` | kb-obsidian-config | `vault={vault-id} graph={graph.json} status=updated` |
+| `config.failed` | kb-obsidian-config | `vault={vault-id} graph={graph.json} reason={error-summary}` |
 
 Future skills that extend this family MUST register their event type in this table.
 

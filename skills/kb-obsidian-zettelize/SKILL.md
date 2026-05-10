@@ -185,6 +185,45 @@ Return:
 - explicit reminder that no git operation was performed
 - if the source was a raw note: a suggestion to consider archiving / deleting the raw once the user is satisfied (skill does NOT delete it)
 
+## Edit Path Policy (S3)
+
+- `kb-obsidian-zettelize` is the ONLY skill authorized to modify zettel content beyond counter increments.
+- This edit path activates during `update`/`merge` operations only.
+- Counter fields `total_access` and `use_count` are always writable per S3.
+
+### MAY change (update/merge path)
+
+- Append to `tags` (no destructive edits).
+- Append to `Aliases`.
+- Append to `Links`.
+- Update `Modification Date`.
+- Append body content only as a new section under a `##` heading.
+- Append provenance footer details.
+
+### MUST NOT change
+
+- `Title`
+- `Creation Date`
+- `Author`
+- `Template`
+- `Lang`
+- Existing body prose (no in-place rewrites/deletions).
+
+### Edit path conditions (all required)
+
+1. User selected `update` or `merge`.
+2. New information is consistent with the existing claim.
+3. A per-file diff is presented.
+4. Explicit user approval is received.
+
+### Contradiction handling
+
+- If new information contradicts an existing claim, MUST stop and surface the contradiction to the user (do not write).
+
+### Atomic write requirement
+
+- All edit-path writes MUST be atomic (write to temp file, then rename in the same directory).
+
 ## Validation
 
 Before claiming success:

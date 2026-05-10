@@ -26,6 +26,7 @@ Persist arbitrary content into a vault's `raw_root` exactly as supplied — no t
 - MUST use a Unix epoch timestamp (seconds) as the bare filename: `{epoch}.md` by default. On collision (same-second double capture), MUST fall through to millisecond precision: `{epoch_ms}.md`. On a further collision, append `-{n}` with `n` starting at `2`.
 - MUST verify the target file does not already exist before writing. NEVER overwrite an existing raw file.
 - MUST warn the user if source content exceeds 1 MB before proceeding. MUST refuse with an explicit error if source content exceeds 10 MB.
+- MUST log `remember.failed` via `kb-obsidian-log` on any error path, including the concrete error reason, so failed captures are traceable alongside `remember.completed` success events.
 - NEVER `git add`, `git commit`, or `git push` from this skill. Capture is local-only.
 - NEVER read or modify any other file in the vault.
 - NEVER prompt the user for "improvements" or "tags" — this skill is the dumb-fast capture path. Refinement is `kb-obsidian-zettelize`'s job.

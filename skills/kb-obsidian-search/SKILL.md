@@ -18,13 +18,15 @@ Immutability contract: no vault file is ever created, renamed, moved, or deleted
 
 ## Usage
 
-- `/kb-obsidian-search "{query}"` — default vault; semantic body search for `{query}`.
+- `/kb-obsidian-search --query "{query}" [--no-track]` — default vault; semantic body search for `{query}`.
 - `/kb-obsidian-search {vault-id} "{query}"` — scope to a named vault entry in `system.md`.
 - `/kb-obsidian-search {vault-id} "{query}" --tags "tag/a,tag/b"` — restrict to zettels whose `tags:` frontmatter intersects `{tag/a, tag/b}`.
 - `/kb-obsidian-search {vault-id} "{query}" --temporal "2024-01-01..2024-12-31"` — restrict to zettels whose `Creation Date` or `Modification Date` falls within the range (inclusive, ISO 8601).
 - `/kb-obsidian-search {vault-id} "{query}" --limit N` — cap the result set to the top `N` matches (default: no cap).
 - `/kb-obsidian-search {vault-id} "{query}" --lang {EN|FR|...}` — restrict to zettels whose `Lang` frontmatter matches.
 - `/kb-obsidian-search {vault-id}` — list all zettels with no ranking applied (no query, no mode flags).
+
+- `--no-track` — Suppress `total_access` counter increments. Default when invoked as a sub-primitive by kb-obsidian-assemble or kb-obsidian-write (the parent skill owns the counter increment).
 
 Retrieval modes may be combined: when multiple flags are present, each mode fires independently and results are merged with per-mode reasoning before final ranking.
 
@@ -34,6 +36,7 @@ Retrieval modes may be combined: when multiple flags are present, each mode fire
 - MUST read the actual `zettel_template` file to learn the canonical frontmatter field names and casing before parsing any zettel. Field names MUST be read from the template, NEVER guessed.
 - MUST return a ranked result list. Each entry MUST include the zettel identifier (vault-relative path or `Title`) and explicit match reasoning that names which retrieval mode(s) fired and why.
 - MUST increment `total_access` by 1 in the frontmatter of every zettel included in the returned result set. This is the only frontmatter mutation this skill performs, and it is mandatory.
+- When `--no-track` is set, `total_access` increments are suppressed. This flag is reserved for parent-skill invocations that manage their own counter accounting per the Zettel Mutability Policy (S3).
 - MUST NEVER increment `use_count`. Search is passive retrieval, not productive use. `use_count` is owned by skills that generate, write, or synthesize.
 - MUST NEVER create, modify (beyond `total_access`), rename, move, or delete any vault file. This is an unconditional immutability contract — no flag or argument overrides it.
 - MUST NEVER `git add`, `git commit`, or `git push`.
@@ -93,6 +96,7 @@ Modes that produce no matches are reported as inactive in the result summary.
 
 For every zettel included in the final ranked result set (after `--limit` is applied):
 
+0. Skip `total_access` increment if `--no-track` is set.
 1. Read the zettel file.
 2. Locate the `total_access:` frontmatter field.
 3. Increment the integer value by 1.

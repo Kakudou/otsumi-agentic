@@ -87,7 +87,7 @@ Flags may be combined freely:
 - MUST write atomically: write to a temp file in the output directory, then rename into the final path. NEVER write directly to the final path.
 - MUST honor every safety caveat declared on the vault entry. If the output path resolves under a directory listed as a submodule in the vault's safety caveats, emit a **submodule write disclosure** unconditionally, before writing.
 - MUST NEVER `git add`, `git commit`, or `git push`. No git operation is performed at any stage.
-- MUST NEVER mutate any zettel. This skill is read-only against `zettel_root`.
+- Zettel content and structural metadata are immutable per the Zettel Mutability Policy (S3). Counter fields (total_access, use_count) are the sole permitted writes to existing zettels and are mandatory on access.
 - NEVER produce output with frontmatter unless `zettel_template` was read first and field casing was derived from it.
 - NEVER overwrite an existing output file without showing a diff and receiving explicit approval.
 
@@ -106,8 +106,9 @@ Depending on the invocation mode:
 
 **Topic query** (`/kb-obsidian-write "{topic}"`):
 1. List `zettel_root`.
-2. Score zettels against the topic by title/alias match, tag intersection, and body content overlap.
-3. Build a ranked `candidate_set` with per-zettel relevance reasoning. Surface the set to the user with the intended coverage before proceeding.
+2. MUST invoke `kb-obsidian-search` for initial candidate discovery before applying local scoring. Pass the topic, relevant tags, and any temporal constraints. Use its results as the candidate set for subsequent scoring.
+3. Score zettels against the topic by title/alias match, tag intersection, and body content overlap.
+4. Build a ranked `candidate_set` with per-zettel relevance reasoning. Surface the set to the user with the intended coverage before proceeding.
 
 **Direct zettel paths** (`--from {path} [--from {path}...]`):
 1. Verify each path exists in or relative to `zettel_root`.
@@ -199,7 +200,7 @@ Return:
 - any gaps surfaced as `[!GAP]` callouts, with suggested `kb-obsidian-zettelize` invocations to fill them
 - submodule write disclosure if applicable
 - reminder that no git operation was performed
-- reminder that no zettel was mutated
+- reminder that no zettel content or metadata was modified (counter increments are permitted per S3)
 
 ## Validation
 
@@ -214,7 +215,7 @@ Before claiming success, all checks below MUST be true:
 - [ ] `Links:` frontmatter and `## Sources` footer reference the same cited zettel set — no extras in either direction.
 - [ ] Full prose proposal was presented for user approval before any write occurred.
 - [ ] Output was written atomically (temp file + rename). No direct write to final path.
-- [ ] No zettel was mutated.
+- [ ] No zettel content or metadata was modified (counter increments are permitted per S3).
 - [ ] No git operation was performed.
 - [ ] Submodule writes were disclosed before the write, where applicable.
 - [ ] If `--dry-run`: no file was written; proposal returned as output only.

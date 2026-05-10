@@ -35,11 +35,20 @@ This skill is a **read-only analysis primitive**:
 | `stale-candidate` | Older zettels potentially superseded by newer same-tag siblings |
 | `candidate-contradiction` | Same-topic zettels with apparently conflicting core claims |
 
+## Planned Checks (unimplemented)
+
+The following check IDs are reserved as planned and are **not part of the active five-check set**:
+
+| Planned ID | Status | Planned behavior |
+|------------|--------|------------------|
+| `broken-wikilink` | planned/unimplemented | Detect `[[wikilinks]]` that point to non-existent zettels or resource notes. |
+| `frontmatter-integrity` | planned/unimplemented | Validate required frontmatter fields against zettel/resource templates. |
+
 ## Hard Rules
 
 1. MUST resolve `zettel_root`, `resources_root`, and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode vault paths.
 2. MUST refuse with an explicit error if the vault entry is missing `zettel_root` or `resources_root`, or if either directory does not exist on disk.
-3. MUST NOT write, delete, rename, or modify any vault file except incrementing `total_access` as explicitly required below. Lint is **strictly read-only**.
+3. This skill is read-only against zettel content and structural metadata per the Zettel Mutability Policy (S3). The sole permitted write is `total_access` counter increments, which are mandatory on file read.
 4. MUST NOT recommend autonomous content generation as remediation. Permitted remediation vocabulary is limited to:
    - "run `/kb-obsidian-assemble`"
    - "run `/kb-obsidian-archive`"
@@ -199,7 +208,7 @@ Before claiming success:
 - [ ] `zettel_root` and `resources_root` came from `system.md`; no path was hardcoded.
 - [ ] Exactly five checks were defined and either executed or explicitly skipped via `--skip` / `--check`.
 - [ ] `total_access` was incremented once per zettel file opened. `use_count` was not touched.
-- [ ] No vault file was written, deleted, renamed, or modified in any way.
+- [ ] Zettel content and structural metadata remained immutable per the Zettel Mutability Policy (S3); the only permitted mutation was mandatory `total_access` increments on file read.
 - [ ] For `candidate-contradiction` findings: conflicting claims are quoted verbatim; no assertion of correctness appears.
 - [ ] For `stale-candidate` findings: high false-positive rate is disclosed on each finding; no zettel was marked or archived.
 - [ ] All remediation suggestions are within the permitted vocabulary (no "create a new zettel" recommendations).
