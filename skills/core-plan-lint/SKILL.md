@@ -111,7 +111,8 @@ For every step where `agent == "fuhyo"`:
 | `FUHYO_ATOMICITY_PROOF_MISSING` | error | `atomicity_proof` exists, is an array, and has exactly 5 entries. |
 | `FUHYO_ATOMICITY_PROOF_EMPTY_ENTRY` | error | No entry in `atomicity_proof` is empty or whitespace-only. |
 | `FUHYO_ATOMICITY_PROOF_GENERIC` | error | Each `atomicity_proof[i]` references a concrete subject of THIS step (the file path, module name, behavior id, or scenario name from `atomic_task` / `input_material`). Across `parallel_group` siblings, the proofs MUST differ — copy-pasted proofs across N siblings is a malformedness signal. |
-| `FUHYO_AUTHORIZED_SKILLS_MISSING` | warning | `authorized_skills` is present (may be empty if the work is a bounded transformation, but the field exists). |
+| `FUHYO_AUTHORIZED_SKILLS_MISSING` | error | `authorized_skills` field MUST be present on every Fuhyō step (may be empty `[]` if the work is a bounded transformation that invokes no skills, but the field MUST exist). |
+| `FUHYO_SKILL_IN_TASK_NOT_IN_AUTH` | error | If `atomic_task` (case-insensitive) references a skill name — detected by patterns: `invoke {skill}`, `run {skill}`, `use {skill}`, `skill: {skill}`, `authorized_skills:.*{skill}` in the surrounding plan text, OR any string matching a known skill name pattern (`kb-*`, `dev-*`, `doc-*`, `flow-*`, `core-*`, `git-*`, `design-*`) — that skill name MUST appear in the step's `authorized_skills` array. A skill referenced in the task description but absent from `authorized_skills` will cause a runtime refusal. |
 
 #### Atomic-or-Swarm Mandate (linguistic smell tests on `atomic_task`)
 
