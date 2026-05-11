@@ -71,12 +71,28 @@ Before decomposing into `agent_invocations`, classify the request and decide whe
 
 | Request signal | Selected workflow | First plan step |
 |---|---|---|
-| Code delivery: write / rewrite / refactor / fix / add feature in a real codebase | `dev-bdd-workflow` | `flow-start-pipeline` (executed by `fuhyo`) |
+| Code delivery: write / rewrite / refactor / fix / add feature in a real codebase | `dev-bdd-workflow` | `S0.recall` → `flow-start-pipeline` (executed by `fuhyo`) |
 | User explicitly named a workflow skill (`/flow-start-pipeline`, `/flow-continue`, `/flow-replay`, etc.) | the named skill | the named skill (executed by `fuhyo`) |
-| Project-continuity / memory-aware request signal (existing project, repo, "my project", "same pattern", "as before", references to vault/zettel/memory, architecture/design/refactor continuation) | none | `S0.recall` Fuhyō pre-flight (executed by `fuhyo` invoking `kb-memory-recall`), then continue planning per the existing detection rows |
+| Project-continuity / memory-aware request signal (see expanded triggers below) | none | `S0.recall` Fuhyō pre-flight (executed by `fuhyo` invoking `kb-memory-recall`), then continue planning per the existing detection rows |
 | Direct skill request (user named a non-workflow skill) | none | the named skill (executed by `fuhyo`) |
 | Single-shot research, writing, schema, summary, analysis with no codebase mutation | none | direct `agent_invocations[]` |
 | Conversational / clarification only | none | empty `agent_invocations[]` with rationale |
+
+### S0.recall Trigger Heuristics
+
+`S0.recall` fires as a pre-flight step whenever ANY of these signals is present. The check is inclusive — when in doubt, fire recall (cheap to return empty, expensive to miss context).
+
+**Explicit linguistic signals (original set):**
+- "existing project", "my project", "same pattern", "as before", "like we did"
+- references to vault, zettel, memory, prior decisions
+- architecture/design/refactor continuation language
+
+**Implicit project-continuity signals (expanded set):**
+- Scaffolding / boilerplate / template creation ("new injector", "new connector", "add a module", "bootstrap a service") — these ALWAYS imply following existing conventions
+- Any code-delivery request (write/rewrite/refactor/fix/add) in a real codebase — prior architectural decisions and patterns are always relevant
+- "Like X" or "similar to X" where X is a sibling module, service, or component in the same project
+- Creating something that parallels an existing thing in the same repo (even without explicit "like X" language — if the project has N instances of a pattern and the user asks for N+1, recall fires)
+- Any request where the user's intent presupposes knowledge of project conventions that may exist in memory
 
 ### Code-Delivery Tells
 
