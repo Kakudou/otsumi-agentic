@@ -20,7 +20,7 @@ Persist arbitrary content into a vault's `raw_root` exactly as supplied — no t
 
 ## Hard Rules
 
-- MUST resolve `raw_root` from `system.md` → `## Knowledge Bases` → `{vault-id}` → `Note-type roots`. NEVER hardcode a folder path inside this skill.
+- MUST resolve `raw_root` from system context (`## Knowledge Bases` → `{vault-id}` → `Note-type roots`, injected as `custom_instruction` at session start). NEVER hardcode a folder path inside this skill.
 - MUST refuse with an explicit error if the resolved vault has no `raw_root` slot, or if the directory does not exist on disk.
 - MUST write the content **byte-for-byte unchanged**. NEVER add frontmatter, NEVER reformat, NEVER trim trailing whitespace, NEVER re-encode line endings, NEVER summarize, NEVER translate, NEVER reflow.
 - MUST use a Unix epoch timestamp (seconds) as the bare filename: `{epoch}.md` by default. On collision (same-second double capture), MUST fall through to millisecond precision: `{epoch_ms}.md`. On a further collision, append `-{n}` with `n` starting at `2`.
@@ -35,7 +35,7 @@ Persist arbitrary content into a vault's `raw_root` exactly as supplied — no t
 
 ### 1. Resolve target vault
 
-1. Read `system.md` and locate the `## Knowledge Bases` section.
+1. Resolve from system context (`## Knowledge Bases` section, already available as `custom_instruction`).
 2. If `{vault-id}` was provided, find the matching `### \`{vault-id}\`` subsection. Otherwise pick the entry tagged `(default)`.
 3. Extract `raw_root`. Refuse if missing.
 4. Verify `raw_root` exists on disk. Refuse if missing.
@@ -77,7 +77,7 @@ Return:
 
 Before claiming success:
 
-- [ ] `raw_root` came from `system.md`; nothing was hardcoded.
+- [ ] `raw_root` came from system context; nothing was hardcoded.
 - [ ] Filename is a pure epoch (seconds → ms → suffixed) with no human title baked in.
 - [ ] No frontmatter, no formatting, no transformation was applied.
 - [ ] Pre-existing files in `raw_root` are untouched.

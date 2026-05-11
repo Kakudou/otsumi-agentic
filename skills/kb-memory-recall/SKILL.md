@@ -27,8 +27,8 @@ Surface relevant memory notes for an agent/project/task combination, hydrate the
 
 ## Hard Rules
 
-1. MUST resolve `memory_root`, `zettel_root`, `resources_root`, `raw_root`, `memory_template`, `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any path.
-2. MUST read `memory_template` before parsing memory frontmatter. Field names and casing come from the template, never guessed.
+1. MUST resolve `memory_root`, `zettel_root`, `resources_root`, `raw_root`, `memory_template`, `zettel_template` from system context (`## Knowledge Bases` → `{vault-id}` section, injected as `custom_instruction` at session start). NEVER hardcode any path.
+2. MUST read `memory_template` (at the absolute path declared in system context under Template registry) before parsing memory frontmatter. Field names and casing come from the template, never guessed.
 3. If `memory_template` does not exist, MUST emit a warning (`memory_template_missing`) and proceed with hardcoded fallback fields. Surface the gap in `warnings[]`.
 4. MUST refuse `--scope agent` without `--agent {name}`. MUST refuse `--scope project` without `--project {name}`. Default scope (no flags) is `shared` only — restrictive default.
 5. MUST search dedicated memory notes under `memory_root` BEFORE falling back to `kb-obsidian-search`.
@@ -51,7 +51,7 @@ Surface relevant memory notes for an agent/project/task combination, hydrate the
 
 ## Steps
 
-1. Resolve target vault, templates, and safety caveats from `system.md`.
+1. Resolve target vault, templates, and safety caveats from system context (`## Knowledge Bases` section, already available as `custom_instruction`).
 2. Validate input flags (refuse ambiguous scope per Hard Rules).
 3. Verify `memory_root` exists; if not, refuse with explicit error.
 4. Verify `memory_template` exists; if not, emit warning and use fallback.
@@ -193,8 +193,8 @@ context_packet:
 
 ## Validation Checklist
 
-- [ ] All vault paths resolved from `system.md`; nothing hardcoded.
-- [ ] `memory_template` read before parsing frontmatter (or warning emitted if missing).
+- [ ] All vault paths resolved from system context; nothing hardcoded.
+- [ ] `memory_template` read (at absolute path from system context) before parsing frontmatter (or warning emitted if missing).
 - [ ] Scope filter applied per restrictive default.
 - [ ] Memory notes searched first; fallback to `kb-obsidian-search` only when empty.
 - [ ] Canonical sources hydrated for every `must_load` entry.

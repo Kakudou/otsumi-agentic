@@ -49,7 +49,7 @@ Run with `--check agent-private-content-in-project-memory` explicitly.
 
 ## Hard Rules
 
-1. MUST resolve `memory_root` and `memory_template` from `system.md`. NEVER hardcode.
+1. MUST resolve `memory_root` and `memory_template` from system context (`## Knowledge Bases` section, injected as `custom_instruction` at session start). NEVER hardcode.
 2. MUST be dry-run only. NO file mutation. NO counter updates. NO archive. NO delete.
 3. MUST enumerate exactly seven default checks. Adding/removing requires version bump.
 4. MUST permit only this remediation vocabulary:
@@ -67,11 +67,11 @@ Run with `--check agent-private-content-in-project-memory` explicitly.
 9. MUST handle missing `memory_template`: emit warning, proceed with hardcoded fallback fields, flag every memory note as "unverified frontmatter" in `warnings[]`.
 10. MUST handle missing `memory_root`: refuse with explicit error.
 11. MUST NEVER `git add`, `git commit`, or `git push`.
-12. MUST NEVER read or modify files outside `memory_root` (except reading `system.md` for resolution and reading linked zettels for canonical-source existence verification — read-only).
+12. MUST NEVER read or modify files outside `memory_root` (except reading linked zettels for canonical-source existence verification — read-only).
 
 ## Steps
 
-1. Resolve target vault and `memory_template` from `system.md`.
+1. Resolve target vault and `memory_template` from system context (`## Knowledge Bases` section, already available as `custom_instruction`).
 2. Index memory notes under `memory_root`. Apply scope filters (`--project`, `--agent`, `--tier`).
 3. Run each non-skipped check in canonical order. Optional heuristic check runs only if `--check agent-private-content-in-project-memory` is set.
 4. For each finding, build a structured entry: path, title, check_id, severity, reason, current_metadata snapshot, suggested_remediation (from permitted vocabulary).
@@ -127,7 +127,7 @@ memory_decay_report:
 
 ## Validation Checklist
 
-- [ ] `memory_root` and `memory_template` came from `system.md`.
+- [ ] `memory_root` and `memory_template` came from system context.
 - [ ] Exactly seven default checks were defined and either executed or skipped via `--skip` / `--check`.
 - [ ] No memory file was modified. `files_modified == 0`.
 - [ ] Permitted remediation vocabulary only.

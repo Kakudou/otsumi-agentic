@@ -34,8 +34,8 @@ Core guarantees:
 
 ## Hard Rules
 
-1. MUST resolve all vault paths (`zettel_root`, `resources_root`, `zettel_template`) from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any path.
-2. MUST read `zettel_template` before modifying any note's frontmatter, to confirm field casing, date format (`YYYY/MM/DD HH:mm:ss`), and existing field names. Status fields (`Status:`, `Superseded-by:`) are ADDED to the note — existing template fields are not reordered or removed.
+1. MUST resolve all vault paths (`zettel_root`, `resources_root`, `zettel_template`) from system context (`## Knowledge Bases` → `{vault-id}` section, injected as `custom_instruction` at session start). NEVER hardcode any path.
+2. MUST read `zettel_template` (at the absolute path declared in system context under Template registry) before modifying any note's frontmatter, to confirm field casing, date format (`YYYY/MM/DD HH:mm:ss`), and existing field names. Status fields (`Status:`, `Superseded-by:`) are ADDED to the note — existing template fields are not reordered or removed.
 3. MUST require individual human approval for every file whose status would change. NEVER apply status changes to multiple files in a single unconfirmed batch.
 4. MUST perform a cross-reference update pass: after marking a note, scan the vault for inbound wikilinks pointing to the now-marked note. Surface all referencing files to the user and offer the choices defined in Step 6. NEVER silently leave stale inbound links unaddressed.
 5. MUST write frontmatter modifications atomically — write to a temp file in the same directory, then rename to the final path. NEVER write directly to the live file.
@@ -54,9 +54,9 @@ Core guarantees:
 
 Execute in order:
 
-1. Read `system.md` → `## Knowledge Bases` → vault entry (by `{vault-id}` or default).
+1. Resolve from system context (`## Knowledge Bases` → vault entry, already available as `custom_instruction`) by `{vault-id}` or default.
 2. Extract `zettel_root`, `resources_root`, `zettel_template`, and all safety caveats.
-3. Read `zettel_template`. Capture:
+3. Read `zettel_template` (at the absolute path from system context). Capture:
    - canonical frontmatter keys and casing (e.g. lowercase `tags:`, capitalized `Title:`)
    - date format (`YYYY/MM/DD HH:mm:ss`)
    - existing field names, so the archive-added fields (`Status:`, `Superseded-by:`) are consistent with the template's style.
@@ -189,7 +189,7 @@ Return:
 
 Before claiming success:
 
-- [ ] All vault paths (`zettel_root`, `zettel_template`) came from `system.md`; no hardcoded paths appear.
+- [ ] All vault paths (`zettel_root`, `zettel_template`) came from system context; no hardcoded paths appear.
 - [ ] `zettel_template` was read before any frontmatter modification; field casing and date format match the template.
 - [ ] Every status change received individual human approval before the write executed.
 - [ ] `Status:` is exactly one of: `archived`, `superseded`, `deprecated`. No other values were written.

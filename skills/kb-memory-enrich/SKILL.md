@@ -26,8 +26,8 @@ Librarian for memory wrappers. Create or update dedicated Memory notes that link
 
 ## Hard Rules
 
-1. MUST resolve `memory_root`, `memory_template`, `zettel_root`, `zettel_template` from `system.md`. NEVER hardcode.
-2. MUST read `memory_template` before generating any memory frontmatter.
+1. MUST resolve `memory_root`, `memory_template`, `zettel_root`, `zettel_template` from system context (`## Knowledge Bases` section, injected as `custom_instruction` at session start). NEVER hardcode.
+2. MUST read `memory_template` (at the absolute path declared in system context under Template registry) before generating any memory frontmatter.
 3. MUST verify every wikilink in `Canonical Sources` resolves to an existing zettel. Refuse to create a memory note whose canonical source does not exist. (Update flows MAY accept newly-archived zettels but MUST surface the lifecycle gap.)
 4. MUST place new notes by `Scope`:
    - `Scope: shared` → `memory_root/shared/`
@@ -79,7 +79,7 @@ Librarian for memory wrappers. Create or update dedicated Memory notes that link
 
 ## Steps
 
-1. Resolve target vault and templates from `system.md`.
+1. Resolve target vault and templates from system context (`## Knowledge Bases` section, already available as `custom_instruction`).
 2. Determine mode (`--new`, `--target`, `--remove-canonical-source`).
 3. For `--new`:
    a. Validate scope flags. Refuse ambiguous scope.
@@ -139,8 +139,8 @@ memory_enrichment:
 
 ## Validation Checklist
 
-- [ ] All paths resolved from `system.md`.
-- [ ] `memory_template` read before frontmatter generation.
+- [ ] All paths resolved from system context.
+- [ ] `memory_template` read (at absolute path from system context) before frontmatter generation.
 - [ ] Every `Canonical Sources` wikilink verified to exist (creation flow).
 - [ ] Scope flags validated; folder placement enforced by `Scope`.
 - [ ] Multi-project memory auto-elevated to `shared`.

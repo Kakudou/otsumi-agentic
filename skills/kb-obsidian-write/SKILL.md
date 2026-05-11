@@ -78,8 +78,8 @@ Flags may be combined freely:
 
 ## Hard Rules
 
-- MUST resolve `zettel_root`, `resources_root`, `zettel_template`, and any safety caveats from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any of those paths.
-- MUST read `zettel_template` before generating any output that includes frontmatter. Frontmatter key names, casing (`tags:` lowercase, `Lang:` capitalised, etc.) and date format (`YYYY/MM/DD HH:mm:ss`) MUST match the template exactly, NEVER guessed.
+- MUST resolve `zettel_root`, `resources_root`, `zettel_template`, and any safety caveats from system context (`## Knowledge Bases` → `{vault-id}` section, injected as `custom_instruction` at session start). NEVER hardcode any of those paths.
+- MUST read `zettel_template` (at the absolute path declared in system context under Template registry) before generating any output that includes frontmatter. Frontmatter key names, casing (`tags:` lowercase, `Lang:` capitalised, etc.) and date format (`YYYY/MM/DD HH:mm:ss`) MUST match the template exactly, NEVER guessed.
 - MUST cite the source zettel for **every factual claim** in generated prose. A factual claim is any statement that conveys information originating from a zettel rather than structural or connective prose. Citations use `[[zettel-title]]` wikilink notation inline. **Uncited factual claims are prohibited.**
 - MUST NEVER fabricate information not present in the source zettels. If the zettels do not support a claim, the claim does not appear in the prose. If knowledge gaps prevent a complete treatment of the topic, surface them explicitly rather than filling them with invention.
 - MUST present the full proposed prose for `approve` / `edit` / `abort` BEFORE writing anything to disk.
@@ -88,16 +88,16 @@ Flags may be combined freely:
 - MUST honor every safety caveat declared on the vault entry. If the output path resolves under a directory listed as a submodule in the vault's safety caveats, emit a **submodule write disclosure** unconditionally, before writing.
 - MUST NEVER `git add`, `git commit`, or `git push`. No git operation is performed at any stage.
 - Zettel content and structural metadata are immutable per the Zettel Mutability Policy (S3). Counter fields (total_access, use_count) are the sole permitted writes to existing zettels and are mandatory on access.
-- NEVER produce output with frontmatter unless `zettel_template` was read first and field casing was derived from it.
+- NEVER produce output with frontmatter unless `zettel_template` was read first (at absolute path from system context) and field casing was derived from it.
 - NEVER overwrite an existing output file without showing a diff and receiving explicit approval.
 
 ## Steps
 
 ### Step 1 — Resolve target vault
 
-1. Read `system.md` → `## Knowledge Bases` → vault entry (by id or default).
+1. Resolve from system context (`## Knowledge Bases` → vault entry, already available as `custom_instruction`) by id or default.
 2. Extract `zettel_root`, `resources_root`, `zettel_template`, and any safety caveats.
-3. Read `zettel_template`. Capture the canonical frontmatter key names, casing, `Author` default, date format, and `Lang` default.
+3. Read `zettel_template` (at the absolute path from system context). Capture the canonical frontmatter key names, casing, `Author` default, date format, and `Lang` default.
 4. If `--template` references a file path, read that file now. Capture its section headings, field order, and structural constraints.
 
 ### Step 2 — Resolve source zettels
@@ -206,8 +206,8 @@ Return:
 
 Before claiming success, all checks below MUST be true:
 
-- [ ] `zettel_root`, `resources_root`, and `zettel_template` all came from `system.md`. No paths were hardcoded.
-- [ ] `zettel_template` was read before any frontmatter was generated. Key casing matches the template exactly.
+- [ ] `zettel_root`, `resources_root`, and `zettel_template` all came from system context. No paths were hardcoded.
+- [ ] `zettel_template` was read (at absolute path from system context) before any frontmatter was generated. Key casing matches the template exactly.
 - [ ] Every factual claim in the produced prose has an inline `[[zettel-title]]` citation. No uncited factual claims remain.
 - [ ] No information was invented that was not present in the working zettel set.
 - [ ] `total_access` was incremented for each zettel read during source resolution.

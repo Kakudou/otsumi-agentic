@@ -46,7 +46,7 @@ The following check IDs are reserved as planned and are **not part of the active
 
 ## Hard Rules
 
-1. MUST resolve `zettel_root`, `resources_root`, and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode vault paths.
+1. MUST resolve `zettel_root`, `resources_root`, and `zettel_template` from system context (`## Knowledge Bases` → `{vault-id}` section, injected as `custom_instruction` at session start). NEVER hardcode vault paths.
 2. MUST refuse with an explicit error if the vault entry is missing `zettel_root` or `resources_root`, or if either directory does not exist on disk.
 3. This skill is read-only against zettel content and structural metadata per the Zettel Mutability Policy (S3). The sole permitted write is `total_access` counter increments, which are mandatory on file read.
 4. MUST NOT recommend autonomous content generation as remediation. Permitted remediation vocabulary is limited to:
@@ -62,7 +62,7 @@ The following check IDs are reserved as planned and are **not part of the active
 8. For `candidate-contradiction`, MUST present conflicting claims **verbatim** from zettel bodies and MUST NOT assert correctness/authority/recency.
 9. For `stale-candidate`, MUST label every finding as **high false-positive rate**, MUST NOT autonomously mark/archive zettels, and MUST surface `--skip stale-candidate` as the noise workaround.
 10. NEVER run git operations (`git add`, `git commit`, `git push`, or any other git command).
-11. NEVER read or modify files outside `zettel_root` and `resources_root`, except reading `system.md` for vault resolution.
+11. NEVER read or modify files outside `zettel_root` and `resources_root`.
 
 ## Execution Contract
 
@@ -73,7 +73,7 @@ The following check IDs are reserved as planned and are **not part of the active
 - Optional `--threshold N` for `unassembled-cluster` (default `5`)
 
 ### Required Data Sources
-- `system.md` (vault resolution only)
+- System context (`## Knowledge Bases` section — vault resolution only)
 - `zettel_root/**/*.md`
 - `resources_root/**/*.md`
 
@@ -86,12 +86,12 @@ The following check IDs are reserved as planned and are **not part of the active
 
 ### 1. Resolve target vault
 
-1. Read `system.md`, then locate `## Knowledge Bases`.
+1. Resolve from system context (`## Knowledge Bases` section, already available as `custom_instruction`).
 2. If `{vault-id}` is provided, select matching `### \`{vault-id}\``; otherwise select the entry marked `(default)`.
 3. Extract `zettel_root`, `resources_root`, and `zettel_template`.
 4. Refuse with explicit error if required fields are missing.
 5. Verify `zettel_root` and `resources_root` exist on disk; refuse if either is missing.
-6. Read `zettel_template` to capture canonical frontmatter fields, especially:
+6. Read `zettel_template` (at the absolute path from system context) to capture canonical frontmatter fields, especially:
    - `Tags`
    - `Links`
    - `Creation Date`
@@ -205,7 +205,7 @@ No git operation was performed. No vault file was modified.
 
 Before claiming success:
 
-- [ ] `zettel_root` and `resources_root` came from `system.md`; no path was hardcoded.
+- [ ] `zettel_root` and `resources_root` came from system context; no path was hardcoded.
 - [ ] Exactly five checks were defined and either executed or explicitly skipped via `--skip` / `--check`.
 - [ ] `total_access` was incremented once per zettel file opened. `use_count` was not touched.
 - [ ] Zettel content and structural metadata remained immutable per the Zettel Mutability Policy (S3); the only permitted mutation was mandatory `total_access` increments on file read.

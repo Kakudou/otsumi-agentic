@@ -40,7 +40,7 @@ This skill is infrastructure support:
 
 ## Hard Rules
 
-- MUST resolve `vault-id` from `system.md` → `## Knowledge Bases`. NEVER construct a scope name from a hardcoded vault identifier.
+- MUST resolve `vault-id` from system context (`## Knowledge Bases` section, injected as `custom_instruction` at session start). NEVER construct a scope name from a hardcoded vault identifier.
 - MUST delegate all append operations to `core-atomic-log`. NEVER re-implement append logic, file initialization, array parsing, corruption detection, or atomic write mechanics.
 - MUST use the scope-name format `kb-vault/{vault-id}` for every vault skill log. This namespace is distinct from pipeline/workflow scopes (which use bare feature names such as `user-auth`) and MUST NOT be reused by dev-workflow pipelines.
 - MUST NOT block the parent vault operation on append failure. If `core-atomic-log` fails or is unavailable, log the failure at most once to the conversation and proceed. Silent degradation is mandatory.
@@ -55,7 +55,7 @@ This skill is infrastructure support:
 
 ### 1. Resolve target vault
 
-1. Read `system.md` → `## Knowledge Bases`.
+1. Resolve from system context (`## Knowledge Bases` section, already available as `custom_instruction`).
 2. Locate the vault entry matching `{vault-id}`. If `{vault-id}` was not provided, use the entry marked `(default)`.
 3. Confirm the vault entry exists. Refuse with an explicit error if not found.
 4. Derive the scope name: `kb-vault/{vault-id}`. Example: vault id `volgna-gath` → scope `kb-vault/volgna-gath`.
@@ -169,7 +169,7 @@ Future skills that extend this family MUST register their event type in this tab
 
 ## Scope-Name Convention
 
-Vault skill events MUST use the prefix `kb-vault/` followed by the vault id from `system.md`:
+Vault skill events MUST use the prefix `kb-vault/` followed by the vault id from system context:
 
 ```
 kb-vault/{vault-id}
@@ -183,7 +183,7 @@ Example: `kb-vault/volgna-gath` → `.otsumi/kb-vault/volgna-gath/events.json`
 
 Before claiming success:
 
-- [ ] `vault-id` was resolved from `system.md` → `## Knowledge Bases`; nothing was hardcoded.
+- [ ] `vault-id` was resolved from system context (`## Knowledge Bases`); nothing was hardcoded.
 - [ ] Scope name is `kb-vault/{vault-id}` and does not collide with any dev-workflow pipeline scope format.
 - [ ] Append was delegated entirely to `core-atomic-log`; no append logic was re-implemented.
 - [ ] Event type is one of the documented vocabulary types or is explicitly disclosed as an extension.

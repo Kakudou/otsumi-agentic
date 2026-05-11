@@ -32,15 +32,15 @@ Retrieval modes may be combined: when multiple flags are present, each mode fire
 
 ## Hard Rules (Non-Negotiable)
 
-- MUST resolve `zettel_root` and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any vault path.
-- MUST read the actual `zettel_template` file to learn the canonical frontmatter field names and casing before parsing any zettel. Field names MUST be read from the template, NEVER guessed.
+- MUST resolve `zettel_root` and `zettel_template` from system context (`## Knowledge Bases` → `{vault-id}` section, injected as `custom_instruction` at session start). NEVER hardcode any vault path.
+- MUST read the actual `zettel_template` file (at the absolute path declared in system context under Template registry) to learn the canonical frontmatter field names and casing before parsing any zettel. Field names MUST be read from the template, NEVER guessed.
 - MUST return a ranked result list. Each entry MUST include the zettel identifier (vault-relative path or `Title`) and explicit match reasoning that names which retrieval mode(s) fired and why.
 - MUST increment `total_access` by 1 in the frontmatter of every zettel included in the returned result set. This is the only frontmatter mutation this skill performs, and it is mandatory.
 - When `--no-track` is set, `total_access` increments are suppressed. This flag is reserved for parent-skill invocations that manage their own counter accounting per the Zettel Mutability Policy (S3).
 - MUST NEVER increment `use_count`. Search is passive retrieval, not productive use. `use_count` is owned by skills that generate, write, or synthesize.
 - MUST NEVER create, modify (beyond `total_access`), rename, move, or delete any vault file. This is an unconditional immutability contract — no flag or argument overrides it.
 - MUST NEVER `git add`, `git commit`, or `git push`.
-- MUST surface an explicit error if `zettel_root` is missing from `system.md` or does not exist on disk. NEVER silently return an empty result when the vault is misconfigured.
+- MUST surface an explicit error if `zettel_root` is missing from system context or does not exist on disk. NEVER silently return an empty result when the vault is misconfigured.
 - MUST surface an explicit error and refuse to proceed if `--temporal` range is malformed (not `YYYY-MM-DD..YYYY-MM-DD`) or if start > end.
 - MUST surface a clear warning when the query matches zero zettels across all active retrieval modes. NEVER silently return an empty list without a diagnostic.
 
@@ -48,10 +48,10 @@ Retrieval modes may be combined: when multiple flags are present, each mode fire
 
 ### 1. Resolve target vault
 
-1. Read `system.md` → `## Knowledge Bases` section.
+1. Resolve from system context (`## Knowledge Bases` section, already available as `custom_instruction`).
 2. If `{vault-id}` was provided, find the matching `### \`{vault-id}\`` subsection. Otherwise pick the entry tagged `(default)`.
 3. Extract `zettel_root`. Refuse with an explicit error if missing or if the directory does not exist on disk.
-4. Read `zettel_template`. Capture the canonical frontmatter keys and casing (`tags:` lowercase, `Creation Date:`, `Modification Date:`, `Title:`, `Aliases:`, `Lang:`, `total_access:`, `use_count:`).
+4. Read `zettel_template` (at the absolute path from system context). Capture the canonical frontmatter keys and casing (`tags:` lowercase, `Creation Date:`, `Modification Date:`, `Title:`, `Aliases:`, `Lang:`, `total_access:`, `use_count:`).
 
 ### 2. List and parse zettel corpus
 
@@ -120,8 +120,8 @@ Return in this order:
 
 Before claiming success:
 
-- [ ] `zettel_root` and `zettel_template` came from `system.md`; nothing was hardcoded.
-- [ ] Frontmatter field casing was read from the actual `zettel_template` file, not assumed.
+- [ ] `zettel_root` and `zettel_template` came from system context; nothing was hardcoded.
+- [ ] Frontmatter field casing was read from the actual `zettel_template` file (at absolute path from system context), not assumed.
 - [ ] All four retrieval modes are documented; active modes fired; inactive modes are reported as inactive.
 - [ ] Every result entry includes explicit per-mode match reasoning (which mode fired and why).
 - [ ] `total_access` was incremented by 1 on every zettel in the returned result set.

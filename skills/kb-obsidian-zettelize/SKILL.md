@@ -26,9 +26,9 @@ Transform one source into a set of **atomic zettels** under the vault's `zettel_
 
 ### Path + Template Authority
 
-- MUST resolve `zettel_root`, `raw_root`, and `zettel_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any of those paths.
-- MUST read the actual `zettel_template` file before generating any zettel. Frontmatter keys, casing (`tags:` lowercase), `Author`, `Lang`, `Template: Zettel`, and date format (`YYYY/MM/DD HH:mm:ss`) MUST come from the template, NEVER from a guess.
-- MUST also read `definition_template` when extracted concepts include term definitions — emit those as `#definition` notes per that template's shape rather than as plain zettels.
+- MUST resolve `zettel_root`, `raw_root`, and `zettel_template` from system context (`## Knowledge Bases` → `{vault-id}` section, injected as `custom_instruction` at session start). NEVER hardcode any of those paths.
+- MUST read the actual `zettel_template` file (at the absolute path declared in system context under Template registry) before generating any zettel. Frontmatter keys, casing (`tags:` lowercase), `Author`, `Lang`, `Template: Zettel`, and date format (`YYYY/MM/DD HH:mm:ss`) MUST come from the template, NEVER from a guess.
+- MUST also read `definition_template` (at its absolute path from system context) when extracted concepts include term definitions — emit those as `#definition` notes per that template's shape rather than as plain zettels.
 
 ### Atomicity + Dedup
 
@@ -64,9 +64,9 @@ Transform one source into a set of **atomic zettels** under the vault's `zettel_
 
 ### 1. Resolve target vault
 
-1. Read `system.md` → `## Knowledge Bases` → vault entry (by id or default).
+1. Resolve from system context (`## Knowledge Bases` → vault entry, already available as `custom_instruction`) by id or default.
 2. Extract `zettel_root`, `raw_root`, `zettel_template`, `definition_template`, and any safety caveats.
-3. Read `zettel_template` and `definition_template`. Capture the canonical frontmatter keys and casing.
+3. Read `zettel_template` and `definition_template` (at their absolute paths from system context). Capture the canonical frontmatter keys and casing.
 
 ### 2. Ingest the source
 
@@ -228,8 +228,8 @@ Return:
 
 Before claiming success:
 
-- [ ] `zettel_root`, `zettel_template`, and (when used) `definition_template` came from `system.md`.
-- [ ] The actual template files were read; frontmatter casing matches the template (lowercase `tags:`, etc.).
+- [ ] `zettel_root`, `zettel_template`, and (when used) `definition_template` came from system context.
+- [ ] The actual template files were read (at absolute paths from system context); frontmatter casing matches the template (lowercase `tags:`, etc.).
 - [ ] Every zettel covers exactly one atomic idea.
 - [ ] Every zettel cites its source in `Links:` and / or a body footer.
 - [ ] Dedup pass ran against `zettel_root` for every candidate; overlap reports were shown to the user.

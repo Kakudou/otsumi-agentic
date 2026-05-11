@@ -30,7 +30,7 @@ This skill is a **librarian, not a writer**:
 
 ## Hard Rules
 
-- MUST resolve `zettel_root`, `resources_root`, `zettel_template`, and `resource_template` from `system.md` → `## Knowledge Bases` → `{vault-id}`. NEVER hardcode any of those paths.
+- MUST resolve `zettel_root`, `resources_root`, `zettel_template`, and `resource_template` from system context (`## Knowledge Bases` → `{vault-id}` section, injected as `custom_instruction` at session start). NEVER hardcode any of those paths.
 - MUST treat existing zettels as the **only** source of truth. The body of the resource note is built from wikilinks (`[[zettel]]`), embeds (`![[zettel]]` or `![[zettel#section]]`), and short connective glue ONLY.
 - MUST NEVER write factual / claim-bearing prose that does not exist in some zettel. Connective glue is permitted ONLY for: section headings, transition sentences that name what the next zettel covers, table-of-contents framing, and citation pointers. If you cannot write a sentence without inventing a fact, do not write it.
 - MUST NEVER create new zettels from this skill, even when gaps exist. Filling gaps is the user's call (typically by running `kb-obsidian-zettelize` separately on a fresh source).
@@ -60,10 +60,10 @@ This skill is a **librarian, not a writer**:
 
 ### 1. Resolve target vault
 
-1. Read `system.md` → `## Knowledge Bases` → vault entry (by id or default).
+1. Resolve from system context (`## Knowledge Bases` → vault entry, already available as `custom_instruction`) by id or default.
 2. Extract `zettel_root`, `resources_root`, `zettel_template`, `resource_template`, and any safety caveats.
 3. If `resource_template` is `null`, set a flag `derived_resource_frontmatter = true` and plan to surface this in the final report.
-4. Read `zettel_template` (and `resource_template` if non-null) to capture the canonical frontmatter shape.
+4. Read `zettel_template` (and `resource_template` if non-null) at their absolute paths from system context to capture the canonical frontmatter shape.
 
 ### 2. Discover candidate zettels
 
@@ -177,7 +177,7 @@ Return:
 
 Before claiming success:
 
-- [ ] `zettel_root`, `resources_root`, `zettel_template`, `resource_template` all came from `system.md`.
+- [ ] `zettel_root`, `resources_root`, `zettel_template`, `resource_template` all came from system context.
 - [ ] Every body sentence is either: a section heading, a connective sentence that names without claiming, a wikilink, an embed, or a TODO callout.
 - [ ] No factual / claim-bearing prose was generated. No paraphrased zettel content was inlined.
 - [ ] `Sources` footer matches `Links:` frontmatter (same set, no extras).
