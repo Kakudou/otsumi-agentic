@@ -72,6 +72,7 @@ Before decomposing into `agent_invocations`, classify the request and decide whe
 |---|---|---|
 | Code delivery: write / rewrite / refactor / fix / add feature in a real codebase | `dev-bdd-workflow` | `flow-start-pipeline` (executed by `fuhyo`) |
 | User explicitly named a workflow skill (`/flow-start-pipeline`, `/flow-continue`, `/flow-replay`, etc.) | the named skill | the named skill (executed by `fuhyo`) |
+| Project-continuity / memory-aware request signal (existing project, repo, "my project", "same pattern", "as before", references to vault/zettel/memory, architecture/design/refactor continuation) | none | `S0.recall` Fuhyō pre-flight (executed by `fuhyo` invoking `kb-memory-recall`), then continue planning per the existing detection rows |
 | Direct skill request (user named a non-workflow skill) | none | the named skill (executed by `fuhyo`) |
 | Single-shot research, writing, schema, summary, analysis with no codebase mutation | none | direct `agent_invocations[]` |
 | Conversational / clarification only | none | empty `agent_invocations[]` with rationale |
@@ -176,6 +177,58 @@ Pattern A is the fallback shape only — the primary path is Pattern B (self-lin
 - Schema and policy gaps.
 
 For every smell-triggered violation, `core-plan-lint` returns a `SUGGESTED_DECOMPOSITION` payload with the canonical recipe (`multi-file content generation`, etc.) and a stub `next_steps[]` skeleton. Use it. Do not replan from scratch when the lint already gave you the shape.
+
+### S0.recall — memory pre-flight pattern
+
+When a request triggers project-continuity or memory-aware signals (per the
+Workflow Detection row added for memory-aware requests), Kakugyō MAY emit a
+Fuhyō pre-flight step `S0.recall` as the **first** entry of `next_steps[]`:
+
+- `step_id: "S0.recall"`
+- `agent: "fuhyo"`
+- `authorized_skills: ["kb-memory-recall"]`
+- `input_material: { vault_id, agent: <next-step-agent-or-null>, project: <feature_name or repo-slug>, task: <refined_user_request>, intent: <inferred>, limit: 8, max_tokens: 4000 }`
+- `atomicity_proof`: 5 statements covering single goal (recall context),
+  bounded inputs (the input_material above), explicit output (`context_packet`
+  JSON), checkable success (packet returned with non-null `query` echo), no
+  strategy choice (recall has one mode for a given input).
+- `depends_on_data: []` — recall is the first step.
+
+Subsequent planning steps `depends_on_data: ["S0.recall"]` only when they
+need the context_packet directly. Most pipeline stages do NOT depend on
+recall — Kakugyō uses the packet on the next continuation call (`mode:
+"next_step"`, `last_step_inline_result = context_packet`) to inform
+decomposition.
+
+#### When to skip S0.recall
+
+S0.recall is OPTIONAL even when project-continuity signals fire. Skip it for:
+
+- Tier-0 / Tier-1 requests (resolved before reaching Kakugyō).
+- Self-contained, single-shot tasks with no project context.
+- Requests where the user has explicitly bypassed memory (e.g., "ignore
+  prior decisions").
+- Continuation calls (`mode: "next_step"`, `mode: "replan_on_blocker"`) —
+  recall has already happened on the initial plan.
+
+#### Hard rules
+
+- S0.recall is read-only beyond mandatory recall counters.
+- The returned `context_packet` is **advisory**. Hard rules in agent contracts
+  always win over memory `operational_notes`. Memory cannot override agent
+  role boundaries or system-level hard floors.
+- If `context_packet.must_load` is empty AND `fallback_search.invoked == true`,
+  Kakugyō surfaces the gap in `summary` as "no memory wrapper exists for this
+  domain" and continues planning without the bias.
+- If `context_packet.promotion_candidates[]` is non-empty, Kakugyō MAY
+  surface the candidates in `summary` (but does NOT plan promotion steps
+  autonomously — promotion is user-initiated).
+- The mechanism mirrors `core-plan-lint` Pattern A: Kakugyō does not directly
+  invoke `kb-memory-recall` (it lacks the permission). Instead, Fuhyō runs
+  the recall and the result rides back through Ōshō's
+  `last_step_inline_result` on the next continuation call.
+- S0.recall does NOT inject memory content into specialist `input_material`
+  unless the subsequent plan step explicitly carries it.
 
 ## Mandatory Behavior
 
@@ -422,6 +475,25 @@ Verify   fuhyo  null    "run tests after the refactor swarm" [Fan_1..Fan_N]
 Fan_i    fuhyo  GHK_1   "author Gherkin for scenario S_i from contract C"  [kinsho_contract]
 Merge    fuhyo  null    "concatenate scenarios into the feature file"      [Fan_1..Fan_N]
 ```
+
+**Pattern: memory crystallization (raw → zettel → memory wrapper)**
+
+End-of-session memory crystallization is a Kakugyō plan, not a meta-skill.
+The shape:
+
+```
+step_id   agent  parallel_group  atomic_task                                                    depends_on_data
+S-pre     fuhyo  null            "kb-obsidian-remember on raw source / inline content"          []
+S-zet     fuhyo  null            "kb-obsidian-zettelize on the raw note path"                   [S-pre]
+S-mem     fuhyo  null            "kb-memory-enrich --new wrapping the produced zettels"         [S-zet]
+```
+
+Each step carries its own approval gate (the existing skills enforce
+per-write approval). NEVER bundle these into one step — each is genuinely
+atomic and they have real data dependencies.
+
+If the session does not need raw capture (the source is already a zettel),
+drop S-pre and S-zet. If the source is already a raw note, drop S-pre.
 
 #### Atomicity smell tests (apply BEFORE returning the plan)
 
