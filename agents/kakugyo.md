@@ -72,28 +72,21 @@ Before decomposing into `agent_invocations`, classify the request and decide whe
 
 | Request signal | Selected workflow | First plan step |
 |---|---|---|
-| Code delivery: write / rewrite / refactor / fix / add feature in a real codebase | `dev-bdd-workflow` | `S0.recall` → `flow-start-pipeline` (executed by `fuhyo`) |
+| Code delivery: write / rewrite / refactor / fix / add feature in a real codebase | `dev-bdd-workflow` | `flow-start-pipeline` (executed by `fuhyo`). Memory recall already happened in Ōshō self-prep — use `recall_context` to inform pipeline parameters. |
 | User explicitly named a workflow skill (`/flow-start-pipeline`, `/flow-continue`, `/flow-replay`, etc.) | the named skill | the named skill (executed by `fuhyo`) |
-| Project-continuity / memory-aware request signal (see expanded triggers below) | none | `S0.recall` Fuhyō pre-flight (executed by `fuhyo` invoking `kb-memory-recall`), then continue planning per the existing detection rows |
 | Direct skill request (user named a non-workflow skill) | none | the named skill (executed by `fuhyo`) |
 | Single-shot research, writing, schema, summary, analysis with no codebase mutation | none | direct `agent_invocations[]` |
 | Conversational / clarification only | none | empty `agent_invocations[]` with rationale |
 
-### S0.recall Trigger Heuristics
+### Recall Context (provided by Ōshō)
 
-`S0.recall` fires as a pre-flight step whenever ANY of these signals is present. The check is inclusive — when in doubt, fire recall (cheap to return empty, expensive to miss context).
+Ōshō runs `kb-memory-recall` as self-prep before invoking Kakugyō. The results arrive as `recall_context` in the invocation payload. Use it to:
 
-**Explicit linguistic signals (original set):**
-- "existing project", "my project", "same pattern", "as before", "like we did"
-- references to vault, zettel, memory, prior decisions
-- architecture/design/refactor continuation language
+- Identify project conventions, naming patterns, architectural decisions from prior work
+- Avoid re-discovering patterns that are already documented in zettels/memory
+- Inform decomposition choices (e.g., if memory says "follow the shodan pattern", reference that in step descriptions)
 
-**Implicit project-continuity signals (expanded set):**
-- Scaffolding / boilerplate / template creation ("new injector", "new connector", "add a module", "bootstrap a service") — these ALWAYS imply following existing conventions
-- Any code-delivery request (write/rewrite/refactor/fix/add) in a real codebase — prior architectural decisions and patterns are always relevant
-- "Like X" or "similar to X" where X is a sibling module, service, or component in the same project
-- Creating something that parallels an existing thing in the same repo (even without explicit "like X" language — if the project has N instances of a pattern and the user asks for N+1, recall fires)
-- Any request where the user's intent presupposes knowledge of project conventions that may exist in memory
+If `recall_context` is empty or absent, plan without it — not every project has memory yet.
 
 ### Code-Delivery Tells
 
@@ -196,38 +189,33 @@ Pattern A is the fallback shape only — the primary path is Pattern B (self-lin
 
 For every smell-triggered violation, `core-plan-lint` returns a `SUGGESTED_DECOMPOSITION` payload with the canonical recipe (`multi-file content generation`, etc.) and a stub `next_steps[]` skeleton. Use it. Do not replan from scratch when the lint already gave you the shape.
 
-### S0.recall — memory pre-flight pattern
+### S0.recall — memory pre-flight (owned by Ōshō)
 
-When a request triggers project-continuity or memory-aware signals (per the
-Workflow Detection row added for memory-aware requests), Kakugyō MAY emit a
-Fuhyō pre-flight step `S0.recall` as the **first** entry of `next_steps[]`:
+Memory recall is now an Ōshō self-prep step, executed BEFORE Kakugyō is
+invoked (see Ōshō's Mandatory First Move, step 3). Ōshō invokes
+`kb-memory-recall` directly and passes the `recall_context` into the
+Kakugyō invocation alongside `raw_user_request` and `refined_user_request`.
 
-- `step_id: "S0.recall"`
-- `agent: "fuhyo"`
-- `authorized_skills: ["kb-memory-recall"]`
-- `input_material: { vault_id, agent: <next-step-agent-or-null>, project: <feature_name or repo-slug>, task: <refined_user_request>, intent: <inferred>, limit: 8, max_tokens: 4000 }`
-- `atomicity_proof`: 5 statements covering single goal (recall context),
-  bounded inputs (the input_material above), explicit output (`context_packet`
-  JSON), checkable success (packet returned with non-null `query` echo), no
-  strategy choice (recall has one mode for a given input).
-- `depends_on_data: []` — recall is the first step.
+Kakugyō MUST NOT emit a separate `S0.recall` Fuhyō step. Memory recall has
+already happened by the time Kakugyō receives the request. Instead:
 
-Subsequent planning steps `depends_on_data: ["S0.recall"]` only when they
-need the context_packet directly. Most pipeline stages do NOT depend on
-recall — Kakugyō uses the packet on the next continuation call (`mode:
-"next_step"`, `last_step_inline_result = context_packet`) to inform
-decomposition.
+- Use `recall_context` (when non-empty) to inform decomposition decisions —
+  prior architectural patterns, naming conventions, project-specific
+  constraints discovered in memory all feed into the plan shape.
+- If `recall_context` is empty or absent, plan normally — it means no
+  relevant memory exists yet.
+- On continuation calls (`mode: "next_step"`, `mode: "replan_on_blocker"`),
+  recall does NOT re-fire — it already ran on the initial plan.
 
-#### When to skip S0.recall
+#### Note on recall skipping (Ōshō-side)
 
-S0.recall is OPTIONAL even when project-continuity signals fire. Skip it for:
+Ōshō skips the recall step for:
 
 - Tier-0 / Tier-1 requests (resolved before reaching Kakugyō).
-- Self-contained, single-shot tasks with no project context.
 - Requests where the user has explicitly bypassed memory (e.g., "ignore
   prior decisions").
-- Continuation calls (`mode: "next_step"`, `mode: "replan_on_blocker"`) —
-  recall has already happened on the initial plan.
+- Continuation calls — Ōshō only recalls on the initial request, not on
+  `mode: "next_step"` or `mode: "replan_on_blocker"` re-invocations.
 
 #### Hard rules
 
@@ -235,17 +223,16 @@ S0.recall is OPTIONAL even when project-continuity signals fire. Skip it for:
 - The returned `context_packet` is **advisory**. Hard rules in agent contracts
   always win over memory `operational_notes`. Memory cannot override agent
   role boundaries or system-level hard floors.
-- If `context_packet.must_load` is empty AND `fallback_search.invoked == true`,
+- If `recall_context` is empty or `fallback_search.invoked == true`,
   Kakugyō surfaces the gap in `summary` as "no memory wrapper exists for this
   domain" and continues planning without the bias.
-- If `context_packet.promotion_candidates[]` is non-empty, Kakugyō MAY
+- If `recall_context.promotion_candidates[]` is non-empty, Kakugyō MAY
   surface the candidates in `summary` (but does NOT plan promotion steps
   autonomously — promotion is user-initiated).
-- The mechanism mirrors `core-plan-lint` Pattern A: Kakugyō does not directly
-  invoke `kb-memory-recall` (it lacks the permission). Instead, Fuhyō runs
-  the recall and the result rides back through Ōshō's
-  `last_step_inline_result` on the next continuation call.
-- S0.recall does NOT inject memory content into specialist `input_material`
+- Kakugyō does not invoke `kb-memory-recall` directly. Ōshō runs recall as
+  self-prep and passes the result as `recall_context` in the invocation
+  payload. Kakugyō consumes it, never produces it.
+- Recall context does NOT inject memory content into specialist `input_material`
   unless the subsequent plan step explicitly carries it.
 
 ## Mandatory Behavior
