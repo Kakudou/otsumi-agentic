@@ -415,6 +415,209 @@ files for full input contracts, step-by-step behavior, and hard rules.
 
 ---
 
+## Memory System
+
+Context that compounds. Knowledge wrappers that survive sessions.
+
+The memory system is a dedicated layer on top of the Obsidian vault. It does
+not replace zettels — it wraps them. A memory note is a lightweight operational
+record that links one or more canonical zettels with recall metadata: when to
+surface it, who it belongs to, how confident the system is in it, and how many
+times it has been recalled. The canonical facts live in the zettels. The memory
+note is the address book entry that makes those facts findable at the right
+moment.
+
+### Architecture
+
+Two paths. One automatic, one explicit.
+
+**Read is autonomous.** When Kakugyō detects project-continuity or
+memory-aware signals in a request, it may emit an `S0.recall` step as the first
+entry in the plan. Fuhyō executes it via `kb-memory-recall`, and the returned
+`context_packet` rides back to Kakugyō through Ōshō's relay on the next
+continuation call. No user action required.
+
+**Write is gated.** Memory notes are created by explicit user triggers only.
+The canonical trigger is "remember this." Kakugyō decomposes it into the
+crystallization recipe (see Orchestration Integration below) and every write
+requires per-file approval before the note is committed.
+
+Memory notes are **one-way wrappers**: they link canonical zettels; zettels
+never link back to memory notes. Canonical truth stays in the zettel layer.
+Memory notes carry operational context, not new facts.
+
+```
+memory note → [[canonical zettel]]   ← one-way only
+```
+
+Folder placement follows scope:
+
+```
+memory_root/
+  shared/                  ← Scope: shared (any agent, any project)
+  agents/{agent-id}/       ← Scope: agent (single agent only)
+  projects/{project-id}/   ← Scope: project (single project only)
+```
+
+### The Three Skills
+
+| Skill | One-liner | Read-only? |
+|---|---|---|
+| `kb-memory-recall` | Retrieve memory notes by agent/project/intent, hydrate linked zettels, return a bounded `context_packet` | Yes (counters only) |
+| `kb-memory-enrich` | Create or update memory wrappers with tier, scope, recall conditions, and confidence metadata | No |
+| `kb-memory-decay` | Read-only health scan: 7 canonical checks for expired, stale, low-confidence, overdue, and orphaned memory notes | Yes (read-only) |
+
+`kb-memory-recall` is the read primitive. It scores candidates against the
+query, partitions results into `must_load`, `maybe_load`, and
+`stale_or_risky`, hydrates their canonical zettels, and falls back to
+`kb-obsidian-search` if no memory wrapper exists for the domain.
+
+`kb-memory-enrich` is the write primitive. It enforces the tier-promotion
+eligibility rules, runs a dedup pass before creation, places files by scope,
+and requires explicit user approval before every write. Librarian, not writer:
+it never invents facts; every claim in a memory note must trace back to a
+linked zettel.
+
+`kb-memory-decay` never mutates anything. It surfaces what has gone stale,
+what is ready for promotion, and what canonical sources are no longer active —
+then stops. All remediation decisions belong to the user.
+
+### Orchestration Integration
+
+S0.recall may fire when Kakugyō detects project-continuity signals
+(references to an existing project, "same pattern as before," "as we decided,"
+vault/zettel/memory references). It is the first step in the plan, always
+delegated to Fuhyō:
+
+```
+S0.recall   fuhyo   null   "kb-memory-recall vault-id '{task}' --agent {a} --project {p}"   []
+```
+
+The `context_packet` returned is advisory. It biases downstream planning; it
+does not override agent contracts or system hard rules.
+
+Memory creation follows the **crystallization recipe** — a Kakugyō canonical
+plan pattern triggered when the user says "remember this":
+
+```
+S-pre   fuhyo   null   "kb-obsidian-remember on raw source / inline content"          []
+S-zet   fuhyo   null   "kb-obsidian-zettelize on the raw note path"                   [S-pre]
+S-mem   fuhyo   null   "kb-memory-enrich --new wrapping the produced zettels"         [S-zet]
+```
+
+Each step carries its own approval gate. If the source is already a zettel,
+drop S-pre and S-zet. Memory rides the existing obsidian pipeline — it does
+not add a parallel track, it extends the end of the same one.
+
+Ōshō relays `context_packet` to Kakugyō via `last_step_inline_result` on the
+next continuation call. She does not interpret or filter it. If
+`promotion_candidates[]` is non-empty, she surfaces them as a side note.
+Promotion is never planned autonomously.
+
+### Practical Usage
+
+**Create a memory note**
+
+Say "remember this" — with inline content, a zettel path, or after a session
+decision. Kakugyō decomposes it into the crystallization recipe above.
+
+```
+User: "remember this decision about the retry strategy"
+→ Kakugyō emits S-pre / S-zet / S-mem crystallization plan
+→ Fuhyō executes each step with approval gates
+→ Memory note created, linked to the produced zettel
+```
+
+**Recall happens automatically**
+
+For project-aware requests, S0.recall fires before planning. No invocation
+needed. The relevant memory notes surface as part of Kakugyō's context.
+
+**Recall manually for a specific task**
+
+```
+/kb-memory-recall "{task}"
+/kb-memory-recall {vault-id} "{task}" --agent hisha --project otsumi-agentic --intent documentation
+```
+
+**Run a health scan**
+
+```
+/kb-memory-decay                              # scan all memory notes
+/kb-memory-decay {vault-id} --tier stm        # stm notes only
+/kb-memory-decay {vault-id} --agent hisha     # agent-scoped only
+```
+
+**Promote a memory note after decay surfaces it as eligible**
+
+```
+/kb-memory-enrich {vault-id} --target {path}  # propose tier change in diff; approve
+```
+
+### Guardrails
+
+Memory notes have an enforced mutability model. The system encodes it; these
+are not guidelines.
+
+- **Do not manually edit memory note frontmatter.** Title, Creation Date,
+  Author, Template, and Lang are immutable. Tier, Scope, Status, Confidence, Stability, Source Quality, and Superseded By are
+  conditionally mutable — changes require enrich with a diff and explicit
+  approval. See system.md § Mutability Policy for the full list.
+- **Do not bypass enrich to write memory notes.** Enrich enforces dedup, scope
+  placement, enum validation, and tier-promotion eligibility. Bypassing it
+  produces notes the system cannot guarantee it can parse.
+- **Memory notes are wrappers, not replacements.** Facts belong in zettels.
+  A memory note that claims facts not present in its linked canonical sources
+  violates the librarian contract. `kb-memory-enrich` refuses to write such
+  notes.
+- **Do not create a memory note without a canonical zettel source.** Enrich
+  verifies that every wikilink in `Canonical Sources` resolves to an existing
+  zettel before writing. If the source does not exist yet, run
+  `kb-obsidian-zettelize` first.
+- **Memory is advisory bias.** `operational_notes` in a memory note cannot
+  override agent hard rules, the orchestration chain, or system-level
+  constraints. They inform — they do not instruct.
+
+### Tier and Scope Systems
+
+**Tiers** are stored in frontmatter (`Tier: stm | mtm | ltm`), not in folder
+structure. They represent confidence in the memory's longevity and reliability.
+
+| Tier | Meaning | Default lifetime |
+|---|---|---|
+| `stm` | Short-term memory — session or task-specific | Review after 7d; auto-stale at 14d |
+| `mtm` | Medium-term memory — project or phase-specific | Review after 30d; auto-stale at 90d |
+| `ltm` | Long-term memory — stable, cross-project knowledge | Review after 180d |
+
+**Tier promotion** requires meeting eligibility thresholds (enforced by enrich;
+decay surfaces candidates):
+
+- `stm → mtm`: `Recall Count ≥ 5` AND `Confidence ≥ 0.7`
+- `mtm → ltm`: `Recall Count ≥ 10` AND `Confidence ≥ 0.85` AND
+  `Source Quality ∈ {direct_user_decision, project_artifact}`
+
+All promotions require explicit user approval and a per-file diff. Demotion
+is also explicit — never automatic. `--force-promote` bypasses eligibility
+but requires a one-line justification written into the note as an audit footer.
+
+**Scope** determines folder placement and recall visibility:
+
+| Scope | Folder | Recalled when |
+|---|---|---|
+| `shared` | `memory_root/shared/` | Always included in any recall |
+| `agent` | `memory_root/agents/{agent-id}/` | Included when `--agent` matches |
+| `project` | `memory_root/projects/{project-id}/` | Included when `--project` matches |
+
+Scope defaults to `agent` on creation. Multi-project memories auto-elevate to
+`shared`. Scope migration is a physical file move with an audit footer — enrich
+handles it.
+
+See `skills/kb-memory-recall/SKILL.md`, `skills/kb-memory-enrich/SKILL.md`,
+and `skills/kb-memory-decay/SKILL.md` for full input contracts, scoring
+formulas, step-by-step behavior, and hard rules.
+
+---
+
 ## What Gets Left Behind
 
 Every closed feature leaves a trail in `.otsumi/{feature-name}/`:
