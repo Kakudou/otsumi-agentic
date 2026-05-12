@@ -334,3 +334,47 @@ diff (not enforced; user can edit):
   skill permissions.
 - Raw notes MUST NOT be loaded by recall except under explicit `--include-raw`
   for provenance/audit.
+
+## Optional Memory Candidate Contract
+
+Agents MAY include `memory_candidates` inside `agent_output` when they discover durable knowledge worth preserving.
+
+Memory candidates are proposals only.
+
+Agents MUST NOT create, update, enrich, decay, archive, or delete memory directly unless Kakugyō explicitly planned a Fuhyō skill step for that operation.
+
+Shape:
+
+```json
+{
+  "memory_candidates": [
+    {
+      "claim": "",
+      "reason": "",
+      "source": "",
+      "suggested_action": "create_memory|enrich_memory|skip",
+      "proposed_tier": "stm|mtm|ltm",
+      "scope": "shared|agent|project",
+      "agents": [],
+      "projects": [],
+      "stability": "volatile|active|stable",
+      "confidence": 0.0,
+      "review_after": "",
+      "canonical_sources": []
+    }
+  ]
+}
+```
+
+Rules:
+
+- `claim` MUST be a concrete reusable memory candidate.
+- `reason` MUST explain why future agents may need it.
+- `source` MUST identify where the claim came from.
+- `confidence` MUST be between `0.0` and `1.0`.
+- `scope: agent` MUST include at least one agent in `agents`.
+- `scope: project` MUST include at least one project in `projects`.
+- `proposed_tier: ltm` MUST be reserved for stable preferences, project invariants, durable procedures, or explicit user decisions.
+- Agents MUST NOT emit memory candidates for trivial, temporary, unsupported, or purely conversational content.
+- Ōshō MAY surface memory candidates to the user in final synthesis.
+- Kakugyō MAY plan memory crystallization only when the user explicitly asks to remember/save/crystallize the result.
