@@ -189,51 +189,161 @@ Pattern A is the fallback shape only — the primary path is Pattern B (self-lin
 
 For every smell-triggered violation, `core-plan-lint` returns a `SUGGESTED_DECOMPOSITION` payload with the canonical recipe (`multi-file content generation`, etc.) and a stub `next_steps[]` skeleton. Use it. Do not replan from scratch when the lint already gave you the shape.
 
-### S0.recall — memory pre-flight (owned by Ōshō)
+### Memory Recall Phases
 
-Memory recall is now an Ōshō self-prep step, executed BEFORE Kakugyō is
-invoked (see Ōshō's Mandatory First Move, step 3). Ōshō invokes
-`kb-memory-recall` directly and passes the `recall_context` into the
-Kakugyō invocation alongside `raw_user_request` and `refined_user_request`.
+Memory recall has two distinct phases.
 
-Kakugyō MUST NOT emit a separate `S0.recall` Fuhyō step. Memory recall has
-already happened by the time Kakugyō receives the request. Instead:
+#### Phase 1 — Global planning recall, owned by Ōshō
 
-- Use `recall_context` (when non-empty) to inform decomposition decisions —
-  prior architectural patterns, naming conventions, project-specific
-  constraints discovered in memory all feed into the plan shape.
-- If `recall_context` is empty or absent, plan normally — it means no
-  relevant memory exists yet.
-- On continuation calls (`mode: "next_step"`, `mode: "replan_on_blocker"`),
-  recall does NOT re-fire — it already ran on the initial plan.
+Ōshō runs `kb-memory-recall` as self-prep before invoking Kakugyō.
+
+This recall is broad and planning-oriented. It exists so Kakugyō can plan with prior context instead of decomposing blind.
+
+Ōshō's recall SHOULD target:
+
+- shared memory
+- project memory
+- architecture conventions
+- prior decisions
+- workflow patterns
+- naming conventions
+- known traps
+
+Ōshō passes the result as `recall_context`.
+
+Kakugyō MUST use `recall_context` when non-empty to inform decomposition decisions.
+
+If `recall_context` is empty or absent, plan normally.
+
+On continuation calls (`mode: "next_step"`, `mode: "replan_on_blocker"`), recall does NOT re-fire — it already ran on the initial plan.
 
 #### Note on recall skipping (Ōshō-side)
 
 Ōshō skips the recall step for:
 
 - Tier-0 / Tier-1 requests (resolved before reaching Kakugyō).
-- Requests where the user has explicitly bypassed memory (e.g., "ignore
-  prior decisions").
-- Continuation calls — Ōshō only recalls on the initial request, not on
-  `mode: "next_step"` or `mode: "replan_on_blocker"` re-invocations.
+- Requests where the user has explicitly bypassed memory (e.g., "ignore prior decisions").
+- Continuation calls — Ōshō only recalls on the initial request, not on `mode: "next_step"` or `mode: "replan_on_blocker"` re-invocations.
+
+#### Phase 2 — Targeted per-agent execution recall, planned by Kakugyō
+
+Kakugyō MUST NOT duplicate Ōshō's global planning recall.
+
+However, after selecting specialist agents, Kakugyō MAY emit targeted per-agent recall preflight steps when a planned specialist would benefit from agent-scoped, project-scoped, or intent-specific memory.
+
+This is not a second global recall.
+
+It is specialist preparation.
+
+Per-agent recall SHOULD be planned when:
+
+- the specialist is working on an existing project
+- the task relies on previous project decisions
+- the task is documentation, validation, implementation, review, refactor, research, or architecture work
+- the task mentions Obsidian, zettel, memory, skills, agents, workflows, or repo conventions
+- `recall_context` indicates memory exists but does not contain specialist-specific context
+- the specialist has a known role-specific memory lane
+
+Per-agent recall MAY be skipped when:
+
+- the specialist task is trivial
+- the entire needed context is already passed in `input_material`
+- the request explicitly bypasses memory
+- the relevant agent has no memory wrapper candidates
+
+A per-agent recall step MUST:
+
+- be executed by `fuhyo`
+- use `kb-memory-recall`
+- pass `agent`
+- pass `project` when known
+- pass `intent`
+- pass `limit`
+- pass `max_tokens`
+- set `include_raw: false` unless provenance/audit is explicitly needed
+- declare `authorized_skills: ["kb-memory-recall"]`
+- be marked as a dependency for the specialist step that consumes it
+
+The returned context packet is advisory.
+
+Hard rules in agent contracts always win over memory `operational_notes`.
+
+Memory cannot override agent role boundaries, safety rules, skill permissions, or system-level hard floors.
+
+#### Per-agent recall step shape
+
+When emitting a per-agent recall step, use this pattern:
+
+```json
+{
+  "step_id": "Sx.recall.{agent}",
+  "agent": "fuhyo",
+  "action_type": "atomic_execution",
+  "purpose": "Run targeted memory recall for the planned {agent} step.",
+  "depends_on_data": [],
+  "parallel_group": null,
+  "atomicity_proof": [
+    "goal: run one targeted memory recall preflight",
+    "input: one vault id, one target agent, one project/task/intent tuple",
+    "output: one context_packet",
+    "success: packet contains ranked entries with reasons or zero-match diagnostics",
+    "no_strategy: retrieval policy is owned by kb-memory-recall"
+  ],
+  "input_contract": {
+    "atomic_task": "Run targeted memory recall for the planned {agent} step.",
+    "input_material": {
+      "skill": "kb-memory-recall",
+      "vault_id": "volgna-gath",
+      "agent": "{agent}",
+      "project": "{project}",
+      "task": "{specialist_task_summary}",
+      "intent": "{documentation|implementation|refactor|research|review|validation|planning|general}",
+      "limit": 6,
+      "max_tokens": 3000,
+      "include_raw": false
+    },
+    "rules": [
+      "Return only the context_packet and warnings.",
+      "Do not zettelize, enrich, decay, archive, or write memory.",
+      "Do not load raw notes unless include_raw is explicitly true."
+    ],
+    "constraints": [
+      "Read-only except mandatory recall counters.",
+      "No git operations."
+    ],
+    "expected_output_format": "context_packet object",
+    "authorized_skills": ["kb-memory-recall"],
+    "definition_of_done": "A bounded context_packet is returned for the planned specialist agent, or an empty packet with diagnostics."
+  },
+  "output_contract": {},
+  "authorized_skills": ["kb-memory-recall"],
+  "forbidden_actions": ["write memory", "zettelize", "enrich", "decay", "archive", "git"],
+  "completion_gate": "context_packet returned or empty packet with diagnostics",
+  "handoff_to": []
+}
+```
+
+#### Consuming per-agent recall
+
+The specialist step that follows a per-agent recall MUST include the recall step id in `depends_on_data`.
+
+The specialist input MUST clearly separate:
+
+- `global_recall_context` from Ōshō
+- `agent_recall_context` from the targeted Fuhyō recall step
+- task-specific input material
+
+If the targeted recall returns empty, continue normally. Empty recall is not a blocker.
 
 #### Hard rules
 
-- S0.recall is read-only beyond mandatory recall counters.
-- The returned `context_packet` is **advisory**. Hard rules in agent contracts
-  always win over memory `operational_notes`. Memory cannot override agent
-  role boundaries or system-level hard floors.
-- If `recall_context` is empty or `fallback_search.invoked == true`,
-  Kakugyō surfaces the gap in `summary` as "no memory wrapper exists for this
-  domain" and continues planning without the bias.
-- If `recall_context.promotion_candidates[]` is non-empty, Kakugyō MAY
-  surface the candidates in `summary` (but does NOT plan promotion steps
-  autonomously — promotion is user-initiated).
-- Kakugyō does not invoke `kb-memory-recall` directly. Ōshō runs recall as
-  self-prep and passes the result as `recall_context` in the invocation
-  payload. Kakugyō consumes it, never produces it.
-- Recall context does NOT inject memory content into specialist `input_material`
-  unless the subsequent plan step explicitly carries it.
+- Phase 1 recall is read-only beyond mandatory recall counters.
+- The returned `context_packet` is **advisory**. Hard rules in agent contracts always win over memory `operational_notes`. Memory cannot override agent role boundaries or system-level hard floors.
+- If `recall_context` is empty or `fallback_search.invoked == true`, Kakugyō surfaces the gap in `summary` as "no memory wrapper exists for this domain" and continues planning without the bias.
+- If `recall_context.promotion_candidates[]` is non-empty, Kakugyō MAY surface the candidates in `summary` (but does NOT plan promotion steps autonomously — promotion is user-initiated).
+- Kakugyō does not invoke `kb-memory-recall` directly. Ōshō runs global recall as self-prep and passes the result as `recall_context` in the invocation payload. Kakugyō consumes global recall and plans targeted recall.
+- Recall context does NOT inject memory content into specialist `input_material` unless the subsequent plan step explicitly carries it.
+- Per-agent recall steps MUST NOT be used to re-run global recall. They target agent-scoped and project-scoped memory only.
 
 ## Mandatory Behavior
 
