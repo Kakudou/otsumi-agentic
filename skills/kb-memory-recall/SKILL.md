@@ -21,6 +21,47 @@ Surface relevant memory notes for an agent/project/task combination, hydrate the
 | `/kb-memory-recall {vault-id} "{task}" --dry-run` | Return packet without any counter writes. |
 | `/kb-memory-recall {vault-id} "{task}" --include-archived` | Include archived memory notes in the scan. |
 
+## Staged Recall Model
+
+This skill serves two distinct callers with different scopes:
+
+### Ōshō — Global planning recall (Phase 1)
+
+Ōshō invokes `kb-memory-recall` as self-prep before Kakugyō planning. This is broad recall targeting shared and project memory to inform decomposition decisions.
+
+When called by Ōshō:
+
+- Scope defaults to shared + project (no `--agent` flag).
+- Intent is typically `planning` or `general`.
+- The returned `context_packet` is passed to Kakugyō as `recall_context`.
+- This recall runs once per request (not on continuation calls).
+
+### Fuhyō — Targeted per-agent recall (Phase 2)
+
+Fuhyō executes targeted per-agent recall steps planned by Kakugyō. This is narrow recall scoped to a specific specialist's memory lane.
+
+When called by Fuhyō:
+
+- `--agent` MUST be provided (targets specialist-scoped memory).
+- `--project` SHOULD be provided when known.
+- `--intent` SHOULD match the specialist's task type.
+- The returned `context_packet` is passed as `agent_recall_context` into the specialist step.
+- This recall is NOT a duplicate of Phase 1 — it targets agent-scoped memory that Phase 1 intentionally does not cover.
+
+### Behavior when parameters are omitted
+
+- If `--agent` is omitted: search shared and project memory only (Phase 1 behavior).
+- If `--agent` is provided: include agent-scoped memory matching that agent (Phase 2 behavior).
+- If `--project` is provided: include project-scoped memory matching that project.
+- If both are omitted: restrictive default (shared scope only).
+
+### Invariants across both phases
+
+- Read-only beyond mandatory recall counters.
+- MUST NOT create, modify, enrich, decay, archive, or delete memory notes.
+- MUST NOT load raw notes unless `--include-raw` is explicitly set.
+- Memory content is advisory bias, not instruction. The consuming agent's contract and hard rules always supersede `operational_notes`.
+
 ## Intent Enum
 
 `--intent` accepts: `documentation`, `implementation`, `refactor`, `research`, `review`, `validation`, `planning`, `general`. Other values are accepted but emit a warning ("intent value not in canonical set; matching may be weaker").
