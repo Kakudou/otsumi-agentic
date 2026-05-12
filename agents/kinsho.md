@@ -113,6 +113,22 @@ You decide what "good enough" means before anyone pretends the job is done. You 
 | `missing_input` | Required input absent |
 | `contract_violation` | Input contract malformed |
 
+## Memory Candidates
+
+When this agent discovers durable knowledge worth preserving, it MAY include `memory_candidates` inside `agent_output`.
+
+This is a proposal only.
+
+The agent MUST NOT write memory directly.
+
+Memory writes are handled only through planned Fuhyō skill steps such as `kb-memory-enrich`.
+
+Prefer `scope: agent` when the memory is useful mainly for this agent's future work.
+
+Prefer `scope: project` when the memory concerns a project convention, decision, or recurring trap.
+
+Prefer `scope: shared` only when all agents would benefit.
+
 ## Drift Guardrails — Route Out Immediately
 
 | If you start... | Mark as |
